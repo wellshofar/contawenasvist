@@ -74,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      console.log('Profile fetched:', data);
       setProfile(data as Profile);
     } catch (error) {
       console.error('Error in fetchProfile:', error);
@@ -90,6 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
 
+      console.log('Sign in successful, user:', data.user);
       return { error: null };
     } catch (error) {
       console.error('Exception in signIn:', error);

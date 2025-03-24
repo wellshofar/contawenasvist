@@ -25,6 +25,29 @@ export const createAdminUser = async (email: string, password: string, fullName:
       throw new Error("Only existing administrators can create new admin users");
     }
     
+    // Check if user already exists
+    const { data: existingUsers } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', email);
+    
+    if (existingUsers && existingUsers.length > 0) {
+      // User exists, update their role to admin
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          role: 'admin' as UserRole,
+          full_name: fullName 
+        })
+        .eq('email', email);
+        
+      if (updateError) {
+        throw updateError;
+      }
+      
+      return { success: true, message: "User already exists. Role updated to admin." };
+    }
+    
     // Create the new user
     const { data: newUser, error: signUpError } = await supabase.auth.admin.createUser({
       email,
@@ -100,11 +123,92 @@ export const updateUserRole = async (userId: string, newRole: UserRole) => {
 };
 
 /**
- * Special function to set up the initial admin user via Supabase Edge Function
- * This should be protected and only callable from a Supabase Edge Function
+ * Special function to set up the initial admin user
+ * This will create or update the admin user with the provided credentials
  */
-export const setupInitialAdmin = async () => {
-  // This function would be implemented in a Supabase Edge Function
-  // for security reasons, since it would need the service_role key
-  console.log("This function should be implemented as a Supabase Edge Function");
+export const setupInitialAdmin = async (email: string, password: string, fullName: string) => {
+  try {
+    console.log("Setting up initial admin user:", email);
+    
+    // First, check if the user already exists
+    const { data: existingUsers, error: queryError } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .eq('email', email);
+    
+    if (queryError) {
+      console.error("Error checking for existing user:", queryError);
+      throw queryError;
+    }
+    
+    if (existingUsers && existingUsers.length > 0) {
+      // User exists, update their role to admin
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          role: 'admin' as UserRole,
+          full_name: fullName 
+        })
+        .eq('email', email);
+        
+      if (updateError) {
+        console.error("Error updating existing user to admin:", updateError);
+        throw updateError;
+      }
+      
+      console.log("Existing user updated to admin role:", email);
+      return { success: true, message: "Existing user updated to admin" };
+    }
+    
+    // Create the new admin user
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        }
+      }
+    });
+    
+    if (signUpError) {
+      console.error("Error creating admin user:", signUpError);
+      throw signUpError;
+    }
+    
+    if (!signUpData.user) {
+      throw new Error("Failed to create user");
+    }
+    
+    // Update the user's profile to give them admin role
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ 
+        role: 'admin' as UserRole,
+        full_name: fullName 
+      })
+      .eq('id', signUpData.user.id);
+      
+    if (updateError) {
+      console.error("Error setting user role to admin:", updateError);
+      throw updateError;
+    }
+    
+    // Confirm the email automatically (if possible in this context)
+    const { error: confirmError } = await supabase.auth.admin.updateUserById(
+      signUpData.user.id,
+      { email_confirm: true }
+    );
+    
+    if (confirmError) {
+      console.error("Could not auto-confirm email:", confirmError);
+      // This is not a fatal error, so we don't throw
+    }
+    
+    console.log("Initial admin user created successfully:", email);
+    return { success: true, user: signUpData.user };
+  } catch (error) {
+    console.error("Error in setupInitialAdmin:", error);
+    throw error;
+  }
 };

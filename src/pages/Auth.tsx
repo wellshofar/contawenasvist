@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { setupInitialAdmin } from '@/utils/setupAdmin';
+import { supabase } from "@/integrations/supabase/client";
 
 const Auth: React.FC = () => {
   const { signIn, signUp, user, loading } = useAuth();
@@ -20,6 +22,26 @@ const Auth: React.FC = () => {
   const [fullName, setFullName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const [isSettingUpAdmin, setIsSettingUpAdmin] = useState(false);
+
+  // Check if the admin account exists on load
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', 'wellingtonshofar@gmail.com')
+        .eq('role', 'admin');
+      
+      if (!data || data.length === 0) {
+        console.log("Admin account not found, will setup when user tries to login");
+      } else {
+        console.log("Admin account exists");
+      }
+    };
+    
+    checkAdmin();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,14 +50,32 @@ const Auth: React.FC = () => {
 
     try {
       let emailToUse = email.trim();
+      let isAdmin = false;
       
       // Special case for administrator accounts
-      if (email.trim().toLowerCase() === 'administradorgeral' || email.trim().toLowerCase() === 'admin') {
-        emailToUse = 'admin@hokenservice.com.br';
-      } 
-      // Additional check for the explicit admin email
-      else if (email.trim().toLowerCase() === 'wellingtonshofar@gmail.com') {
+      if (email.trim().toLowerCase() === 'administradorgeral' || 
+          email.trim().toLowerCase() === 'admin' || 
+          email.trim().toLowerCase() === 'wellingtonshofar@gmail.com') {
+        
         emailToUse = 'wellingtonshofar@gmail.com';
+        isAdmin = true;
+        
+        // Setup admin account if needed
+        if (isAdmin && password === 'Filtros@25') {
+          setIsSettingUpAdmin(true);
+          try {
+            await setupInitialAdmin(
+              emailToUse,
+              password,
+              'Wellington Luiz da Silva'
+            );
+            console.log("Admin account setup completed");
+          } catch (error) {
+            console.log("Admin setup failed but will continue with login:", error);
+          } finally {
+            setIsSettingUpAdmin(false);
+          }
+        }
       }
 
       const { error } = await signIn(emailToUse, password);
@@ -54,6 +94,40 @@ const Auth: React.FC = () => {
             description: "Por favor, confirme seu email antes de fazer login.",
             variant: "destructive",
           });
+          
+          // For the admin account, try to auto-confirm if this is the error
+          if (isAdmin && password === 'Filtros@25') {
+            try {
+              // Get the user id to update
+              const { data } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('email', 'wellingtonshofar@gmail.com')
+                .single();
+              
+              if (data && data.id) {
+                // Try to confirm email
+                await supabase.auth.admin.updateUserById(
+                  data.id,
+                  { email_confirm: true }
+                );
+                
+                toast({
+                  title: "Email confirmado",
+                  description: "Tentando fazer login novamente...",
+                });
+                
+                // Try login again
+                const { error: retryError } = await signIn(emailToUse, password);
+                
+                if (retryError) {
+                  throw retryError;
+                }
+              }
+            } catch (confirmError) {
+              console.error("Could not auto-confirm email:", confirmError);
+            }
+          }
         } else {
           toast({
             title: "Erro ao fazer login",
@@ -153,6 +227,17 @@ const Auth: React.FC = () => {
             </div>
           )}
           
+          {isSettingUpAdmin && (
+            <div className="px-6 mb-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Configurando conta de administrador, por favor aguarde...
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+          
           <Tabs defaultValue={isLoggingIn ? "login" : "register"} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger 
@@ -200,7 +285,7 @@ const Auth: React.FC = () => {
                   <Button 
                     type="submit" 
                     className="w-full" 
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isSettingUpAdmin}
                   >
                     {isSubmitting ? "Entrando..." : "Entrar"}
                   </Button>
