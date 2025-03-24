@@ -2,17 +2,47 @@
 import React from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { BellIcon, SearchIcon, UserIcon } from "lucide-react";
+import { BellIcon, SearchIcon, UserIcon, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 const Navbar: React.FC = () => {
   const { toast } = useToast();
+  const { user, profile, signOut } = useAuth();
 
   const handleNotification = () => {
     toast({
       title: "Notificações",
       description: "Você não tem novas notificações neste momento.",
     });
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    toast({
+      title: "Logout realizado",
+      description: "Você saiu do sistema com sucesso.",
+    });
+  };
+
+  const userRole = profile?.role || 'Usuário';
+  const displayName = profile?.full_name || user?.email || 'Usuário';
+  
+  const getRoleDisplay = (role: string) => {
+    switch (role) {
+      case 'admin': return 'Administrador';
+      case 'tecnico': return 'Técnico';
+      case 'atendente': return 'Atendente';
+      default: return 'Usuário';
+    }
   };
 
   return (
@@ -39,12 +69,40 @@ const Navbar: React.FC = () => {
           <BellIcon className="h-5 w-5" />
         </Button>
         
-        <div className="flex items-center gap-3 ml-2 bg-background p-1.5 rounded-full border">
-          <div className="rounded-full bg-primary/10 p-1.5">
-            <UserIcon className="h-5 w-5 text-primary" />
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-3 ml-2 bg-background p-1.5 rounded-full border cursor-pointer">
+                <div className="rounded-full bg-primary/10 p-1.5">
+                  <UserIcon className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-sm font-medium mr-2 hidden sm:inline-block">{displayName}</span>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem disabled className="text-muted-foreground">
+                {getRoleDisplay(userRole)}
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled className="text-muted-foreground">
+                {user.email}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sair</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="flex items-center gap-3 ml-2 bg-background p-1.5 rounded-full border">
+            <div className="rounded-full bg-primary/10 p-1.5">
+              <UserIcon className="h-5 w-5 text-primary" />
+            </div>
+            <span className="text-sm font-medium mr-2 hidden sm:inline-block">Guest</span>
           </div>
-          <span className="text-sm font-medium mr-2 hidden sm:inline-block">Administrador</span>
-        </div>
+        )}
       </div>
     </header>
   );
