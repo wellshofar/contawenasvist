@@ -82,10 +82,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      return { error };
+      console.log(`Attempting to sign in with email: ${email}`);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        console.error('SignIn error:', error);
+        return { error };
+      }
+
+      return { error: null };
     } catch (error) {
-      console.error('Error in signIn:', error);
+      console.error('Exception in signIn:', error);
       return { error };
     }
   };

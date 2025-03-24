@@ -26,13 +26,12 @@ export const createAdminUser = async (email: string, password: string, fullName:
     }
     
     // Create the new user
-    const { data: newUser, error: signUpError } = await supabase.auth.signUp({
+    const { data: newUser, error: signUpError } = await supabase.auth.admin.createUser({
       email,
       password,
-      options: {
-        data: {
-          full_name: fullName,
-        }
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullName,
       }
     });
     
@@ -43,7 +42,10 @@ export const createAdminUser = async (email: string, password: string, fullName:
     // Update the user's role to admin
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ role: 'admin' as UserRole })
+      .update({ 
+        role: 'admin' as UserRole,
+        full_name: fullName 
+      })
       .eq('id', newUser.user.id);
       
     if (updateError) {
@@ -95,4 +97,14 @@ export const updateUserRole = async (userId: string, newRole: UserRole) => {
     console.error("Error updating user role:", error);
     throw error;
   }
+};
+
+/**
+ * Special function to set up the initial admin user via Supabase Edge Function
+ * This should be protected and only callable from a Supabase Edge Function
+ */
+export const setupInitialAdmin = async () => {
+  // This function would be implemented in a Supabase Edge Function
+  // for security reasons, since it would need the service_role key
+  console.log("This function should be implemented as a Supabase Edge Function");
 };

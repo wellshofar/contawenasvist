@@ -27,39 +27,43 @@ const Auth: React.FC = () => {
     setInfoMessage(null);
 
     try {
-      // Handle special case for administrator account
+      let emailToUse = email.trim();
+      
+      // Special case for administrator accounts
       if (email.trim().toLowerCase() === 'administradorgeral' || email.trim().toLowerCase() === 'admin') {
-        const adminEmail = 'admin@hokenservice.com.br';
-        const { error } = await signIn(adminEmail, password);
+        emailToUse = 'admin@hokenservice.com.br';
+      } 
+      // Additional check for the explicit admin email
+      else if (email.trim().toLowerCase() === 'wellingtonshofar@gmail.com') {
+        emailToUse = 'wellingtonshofar@gmail.com';
+      }
 
-        if (error) {
-          if (error.message.includes("Invalid login credentials")) {
-            toast({
-              title: "Credenciais inválidas",
-              description: "Verifique seu usuário e senha e tente novamente.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Erro ao fazer login",
-              description: error.message || "Ocorreu um erro ao tentar fazer login.",
-              variant: "destructive",
-            });
-          }
-        }
-      } else {
-        // Regular login with user-provided email
-        const { error } = await signIn(email, password);
-        
-        if (error) {
+      const { error } = await signIn(emailToUse, password);
+      
+      if (error) {
+        console.error("Login error:", error);
+        if (error.message.includes("Invalid login credentials")) {
+          toast({
+            title: "Credenciais inválidas",
+            description: "Verifique seu usuário e senha e tente novamente.",
+            variant: "destructive",
+          });
+        } else if (error.message.includes("Email not confirmed")) {
+          toast({
+            title: "Email não confirmado",
+            description: "Por favor, confirme seu email antes de fazer login.",
+            variant: "destructive",
+          });
+        } else {
           toast({
             title: "Erro ao fazer login",
-            description: error.message || "Verifique suas credenciais e tente novamente.",
+            description: error.message || "Ocorreu um erro ao tentar fazer login.",
             variant: "destructive",
           });
         }
       }
     } catch (error: any) {
+      console.error("Login exception:", error);
       toast({
         title: "Erro ao fazer login",
         description: error.message || "Algo deu errado. Tente novamente mais tarde.",
@@ -255,7 +259,7 @@ const Auth: React.FC = () => {
           
           <div className="px-6 py-4 text-xs text-center text-muted-foreground">
             <p>Para acessar com a conta de administrador, use:</p>
-            <p>Usuário: administradorgeral</p>
+            <p>Usuário: administradorgeral ou wellingtonshofar@gmail.com</p>
             <p>Senha: Filtros@25</p>
           </div>
         </Card>
