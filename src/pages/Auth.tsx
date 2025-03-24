@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Auth: React.FC = () => {
   const { signIn, signUp, user, loading } = useAuth();
@@ -17,19 +19,45 @@ const Auth: React.FC = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setInfoMessage(null);
 
     try {
-      const { error } = await signIn(email, password);
-      if (error) {
-        toast({
-          title: "Erro ao fazer login",
-          description: error.message || "Verifique suas credenciais e tente novamente.",
-          variant: "destructive",
-        });
+      // Handle special case for administrator account
+      if (email.trim().toLowerCase() === 'administradorgeral' || email.trim().toLowerCase() === 'admin') {
+        const adminEmail = 'admin@hokenservice.com.br';
+        const { error } = await signIn(adminEmail, password);
+
+        if (error) {
+          if (error.message.includes("Invalid login credentials")) {
+            toast({
+              title: "Credenciais inválidas",
+              description: "Verifique seu usuário e senha e tente novamente.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Erro ao fazer login",
+              description: error.message || "Ocorreu um erro ao tentar fazer login.",
+              variant: "destructive",
+            });
+          }
+        }
+      } else {
+        // Regular login with user-provided email
+        const { error } = await signIn(email, password);
+        
+        if (error) {
+          toast({
+            title: "Erro ao fazer login",
+            description: error.message || "Verifique suas credenciais e tente novamente.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error: any) {
       toast({
@@ -55,6 +83,7 @@ const Auth: React.FC = () => {
     }
     
     setIsSubmitting(true);
+    setInfoMessage(null);
 
     try {
       const { error } = await signUp(email, password, fullName);
@@ -71,6 +100,8 @@ const Auth: React.FC = () => {
         setFullName("");
         // Switch to login tab
         setIsLoggingIn(true);
+        // Show info message
+        setInfoMessage("Conta criada com sucesso! Um administrador precisa aprovar seu acesso antes que você possa fazer login. Por favor, entre em contato com o administrador do sistema.");
       }
     } catch (error: any) {
       toast({
@@ -107,6 +138,17 @@ const Auth: React.FC = () => {
             </CardDescription>
           </CardHeader>
           
+          {infoMessage && (
+            <div className="px-6 mb-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {infoMessage}
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+          
           <Tabs defaultValue={isLoggingIn ? "login" : "register"} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger 
@@ -127,11 +169,11 @@ const Auth: React.FC = () => {
               <form onSubmit={handleLogin}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">Usuário ou Email</Label>
                     <Input
                       id="email"
-                      type="email"
-                      placeholder="seu@email.com"
+                      type="text"
+                      placeholder="Seu usuário ou email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -210,6 +252,12 @@ const Auth: React.FC = () => {
               </form>
             </TabsContent>
           </Tabs>
+          
+          <div className="px-6 py-4 text-xs text-center text-muted-foreground">
+            <p>Para acessar com a conta de administrador, use:</p>
+            <p>Usuário: administradorgeral</p>
+            <p>Senha: Filtros@25</p>
+          </div>
         </Card>
       </div>
     </div>

@@ -8,11 +8,12 @@ const corsHeaders = {
 };
 
 interface NotificationRequest {
-  type: "email" | "whatsapp";
+  type: "email" | "whatsapp" | "webhook";
   to: string;
   subject?: string;
   message: string;
   serviceOrderId?: string;
+  additionalData?: Record<string, any>;
 }
 
 serve(async (req) => {
@@ -28,12 +29,11 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get request body
-    const { type, to, subject, message, serviceOrderId } = await req.json() as NotificationRequest;
+    const { type, to, subject, message, serviceOrderId, additionalData } = await req.json() as NotificationRequest;
 
     console.log(`Sending ${type} notification to ${to}`);
 
     // Placeholder for actual email sending implementation
-    // In a real scenario, you would integrate with a service like Resend, SendGrid, etc.
     if (type === "email") {
       // Implement email sending here
       // For now, we'll just log it
@@ -42,17 +42,80 @@ serve(async (req) => {
       console.log(`Message: ${message}`);
     }
     
-    // Placeholder for WhatsApp integration through Evolution API
+    // Evolution API WhatsApp integration
     if (type === "whatsapp") {
-      // Implement WhatsApp sending here using Evolution API
-      // For now, we'll just log it
-      console.log(`WhatsApp would be sent to: ${to}`);
-      console.log(`Message: ${message}`);
+      const evolutionApiUrl = "https://api.chatzapbot.com.br";
+      const instanceName = "juniorhoken";
+      const instanceToken = "2269A7D64EF2-4E62-8AD8-78CE9292C0B9";
       
-      // You would implement the actual WhatsApp API call here
-      // const evolutionApiUrl = Deno.env.get("EVOLUTION_API_URL");
-      // const evolutionApiKey = Deno.env.get("EVOLUTION_API_KEY");
-      // ... implementation details
+      try {
+        // Format phone number (remove non-numeric characters and ensure it has country code)
+        let phoneNumber = to.replace(/\D/g, '');
+        if (!phoneNumber.startsWith('55')) {
+          phoneNumber = `55${phoneNumber}`;
+        }
+        
+        console.log(`Sending WhatsApp to formatted number: ${phoneNumber}`);
+        
+        const whatsappResponse = await fetch(`${evolutionApiUrl}/message/text/${instanceName}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": instanceToken
+          },
+          body: JSON.stringify({
+            number: phoneNumber,
+            text: message
+          })
+        });
+        
+        const whatsappResult = await whatsappResponse.json();
+        console.log("WhatsApp API response:", whatsappResult);
+        
+        if (!whatsappResponse.ok) {
+          throw new Error(`WhatsApp API error: ${whatsappResult.error || JSON.stringify(whatsappResult)}`);
+        }
+      } catch (whatsappError) {
+        console.error("Error sending WhatsApp:", whatsappError);
+        // We don't throw here to still allow other notifications to work
+      }
+    }
+
+    // Make webhook integration
+    if (type === "webhook") {
+      const makeWebhookUrl = "https://hook.eu2.make.com/78m55le7q8q7vvq476r8mpa6u6ikr0fv";
+      
+      try {
+        console.log(`Sending data to Make webhook`);
+        
+        const webhookData = {
+          notificationType: type,
+          recipient: to,
+          subject: subject,
+          message: message,
+          serviceOrderId: serviceOrderId,
+          timestamp: new Date().toISOString(),
+          ...additionalData
+        };
+        
+        const webhookResponse = await fetch(makeWebhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(webhookData)
+        });
+        
+        if (!webhookResponse.ok) {
+          const webhookError = await webhookResponse.text();
+          throw new Error(`Make webhook error: ${webhookError}`);
+        }
+        
+        console.log("Make webhook response status:", webhookResponse.status);
+      } catch (webhookError) {
+        console.error("Error sending to Make webhook:", webhookError);
+        // We don't throw here to still allow other notifications to work
+      }
     }
 
     // In a real scenario, log the notification to the database
