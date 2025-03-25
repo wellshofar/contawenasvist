@@ -72,19 +72,11 @@ const Produtos: React.FC = () => {
           <p className="text-muted-foreground mt-1">Gerencie os produtos da linha HOKEN.</p>
         </div>
         
-        <ProdutoDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          isEditing={isEditing}
-          defaultValues={currentProduto}
-          onSubmit={handleSubmit}
-        >
-          <DialogTrigger asChild>
-            <Button className="gap-2" onClick={openNewDialog}>
-              <PlusIcon className="h-4 w-4" /> Novo Produto
-            </Button>
-          </DialogTrigger>
-        </ProdutoDialog>
+        <DialogTrigger asChild>
+          <Button className="gap-2" onClick={openNewDialog}>
+            <PlusIcon className="h-4 w-4" /> Novo Produto
+          </Button>
+        </DialogTrigger>
       </div>
       
       <Card>
@@ -103,6 +95,14 @@ const Produtos: React.FC = () => {
           />
         </CardContent>
       </Card>
+
+      <ProdutoDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        isEditing={isEditing}
+        defaultValues={currentProduto}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 };
