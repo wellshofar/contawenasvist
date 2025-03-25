@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +68,6 @@ const Clientes: React.FC = () => {
 
       if (error) throw error;
       
-      // Map the database fields to our front-end model
       const mappedData = data.map(customer => ({
         id: customer.id,
         name: customer.name,
@@ -79,7 +77,7 @@ const Clientes: React.FC = () => {
         city: customer.city || "",
         state: customer.state || "",
         postal_code: customer.postal_code || "",
-        documento: customer.document || "",
+        document: customer.document || "",
         created_at: customer.created_at,
         updated_at: customer.updated_at,
         created_by: customer.created_by,
@@ -106,7 +104,7 @@ const Clientes: React.FC = () => {
     form.reset({
       id: cliente.id,
       nome: cliente.name,
-      documento: cliente.documento || "",
+      documento: cliente.document || "",
       email: cliente.email || "",
       telefone: cliente.phone || "",
       endereco: cliente.address || "",
@@ -161,7 +159,6 @@ const Clientes: React.FC = () => {
   const onSubmit = async (values: ClienteFormValues) => {
     try {
       if (isEditing && values.id) {
-        // Update existing client
         const { error } = await supabase
           .from("customers")
           .update({
@@ -184,7 +181,6 @@ const Clientes: React.FC = () => {
           description: `${values.nome} foi atualizado com sucesso.`,
         });
       } else {
-        // Add new client
         const { error } = await supabase
           .from("customers")
           .insert({
@@ -221,7 +217,7 @@ const Clientes: React.FC = () => {
 
   const filteredClientes = clientes.filter(cliente => 
     cliente.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (cliente.documento && cliente.documento.includes(searchTerm)) ||
+    (cliente.document && cliente.document.includes(searchTerm)) ||
     (cliente.email && cliente.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -442,7 +438,7 @@ const Clientes: React.FC = () => {
                           {cliente.name}
                         </div>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell">{cliente.documento || "-"}</TableCell>
+                      <TableCell className="hidden md:table-cell">{cliente.document || "-"}</TableCell>
                       <TableCell className="hidden md:table-cell">{cliente.email || "-"}</TableCell>
                       <TableCell className="hidden md:table-cell">{cliente.phone || "-"}</TableCell>
                       <TableCell className="hidden lg:table-cell max-w-[250px] truncate">

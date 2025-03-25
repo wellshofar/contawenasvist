@@ -20,6 +20,7 @@ export interface Customer {
   city: string | null;
   state: string | null;
   postal_code: string | null;
+  document: string | null;  // Added document field for CPF/CNPJ
   created_at: string;
   updated_at: string;
   created_by: string | null;
@@ -34,6 +35,7 @@ export interface Product {
   created_at: string;
   updated_at: string;
   created_by: string | null;
+  categoria?: string;  // Added categoria as an optional field for frontend use
 }
 
 export interface CustomerProduct {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,7 +120,7 @@ const Produtos: React.FC = () => {
     form.reset({
       id: produto.id,
       nome: produto.name,
-      categoria: produto.categoria,
+      categoria: produto.categoria || "",
       modelo: produto.model || "",
       descricao: produto.description || "",
       prazoManutencao: diasPrazoMap(produto.maintenance_interval_days),
@@ -223,7 +222,7 @@ const Produtos: React.FC = () => {
   const filteredProdutos = produtos.filter(produto => 
     produto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (produto.model && produto.model.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    produto.categoria.toLowerCase().includes(searchTerm.toLowerCase())
+    (produto.categoria && produto.categoria.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -468,3 +467,4 @@ const Produtos: React.FC = () => {
 };
 
 export default Produtos;
+
