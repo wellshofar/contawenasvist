@@ -119,7 +119,7 @@ const App = () => (
               } 
             />
             
-            {/* Root redirect to dashboard */}
+            {/* Empty path route redirects to dashboard */}
             <Route path="" element={<Navigate to="/" replace />} />
             
             {/* 404 route */}
