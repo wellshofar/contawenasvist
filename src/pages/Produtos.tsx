@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusIcon } from "lucide-react";
-import { DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import ProdutoDialog from "@/components/produtos/ProdutoDialog";
 import ProdutoSearch from "@/components/produtos/ProdutoSearch";
 import ProdutoTable from "@/components/produtos/ProdutoTable";
@@ -72,19 +72,18 @@ const Produtos: React.FC = () => {
           <p className="text-muted-foreground mt-1">Gerencie os produtos da linha HOKEN.</p>
         </div>
         
-        <ProdutoDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          isEditing={isEditing}
-          defaultValues={currentProduto}
-          onSubmit={handleSubmit}
-        >
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2" onClick={openNewDialog}>
               <PlusIcon className="h-4 w-4" /> Novo Produto
             </Button>
           </DialogTrigger>
-        </ProdutoDialog>
+          <ProdutoDialog
+            isEditing={isEditing}
+            defaultValues={currentProduto}
+            onSubmit={handleSubmit}
+          />
+        </Dialog>
       </div>
       
       <Card>
