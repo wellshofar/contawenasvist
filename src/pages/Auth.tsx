@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 const Auth: React.FC = () => {
   const { signIn, signUp, user, loading } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoggingIn, setIsLoggingIn] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,6 +42,13 @@ const Auth: React.FC = () => {
     
     checkAdmin();
   }, []);
+
+  // If user is already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user && !loading) {
+      navigate('/', { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,6 +129,9 @@ const Auth: React.FC = () => {
                 
                 if (retryError) {
                   throw retryError;
+                } else {
+                  // If login successful, redirect to dashboard
+                  navigate('/', { replace: true });
                 }
               }
             } catch (confirmError) {
@@ -135,6 +145,9 @@ const Auth: React.FC = () => {
             variant: "destructive",
           });
         }
+      } else {
+        // If login successful, redirect to dashboard
+        navigate('/', { replace: true });
       }
     } catch (error: any) {
       console.error("Login exception:", error);
@@ -192,11 +205,7 @@ const Auth: React.FC = () => {
     }
   };
 
-  // If user is already logged in, redirect to dashboard
-  if (user && !loading) {
-    return <Navigate to="/" replace />;
-  }
-
+  // If loading, show spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">

@@ -37,7 +37,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(newSession?.user ?? null);
         
         if (newSession?.user) {
-          await fetchProfile(newSession.user.id);
+          // Defer profile fetch to avoid deadlock
+          setTimeout(() => {
+            fetchProfile(newSession.user.id);
+          }, 0);
         } else {
           setProfile(null);
         }
@@ -92,6 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       console.log('Sign in successful, user:', data.user);
+      // We don't need to manually set user/session here as onAuthStateChange will handle it
       return { error: null };
     } catch (error) {
       console.error('Exception in signIn:', error);
