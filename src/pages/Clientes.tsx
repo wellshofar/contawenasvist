@@ -3,12 +3,11 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusIcon } from "lucide-react";
-import { DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { useClientes } from "@/hooks/useClientes";
 import ClienteTable from "@/components/clientes/ClienteTable";
 import ClienteSearch from "@/components/clientes/ClienteSearch";
 import ClienteDialog from "@/components/clientes/ClienteDialog";
-import { Customer } from "@/types/supabase";
 
 const Clientes: React.FC = () => {
   const {
@@ -40,19 +39,18 @@ const Clientes: React.FC = () => {
           <p className="text-muted-foreground mt-1">Gerencie os clientes cadastrados no sistema.</p>
         </div>
         
-        <ClienteDialog 
-          open={dialogOpen} 
-          onOpenChange={setDialogOpen}
-          isEditing={isEditing}
-          defaultValues={currentCliente}
-          onSubmit={handleSubmit}
-        />
-        
-        <DialogTrigger asChild>
-          <Button className="gap-2" onClick={openNewDialog}>
-            <PlusIcon className="h-4 w-4" /> Novo Cliente
-          </Button>
-        </DialogTrigger>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2" onClick={openNewDialog}>
+              <PlusIcon className="h-4 w-4" /> Novo Cliente
+            </Button>
+          </DialogTrigger>
+          <ClienteDialog 
+            isEditing={isEditing}
+            defaultValues={currentCliente}
+            onSubmit={handleSubmit}
+          />
+        </Dialog>
       </div>
       
       <Card>
