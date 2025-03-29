@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
@@ -50,7 +49,6 @@ export const AgendamentoForm: React.FC<AgendamentoFormProps> = ({
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   
-  // Set up the form with default values
   const form = useForm<AppointmentFormValues>({
     defaultValues: {
       title: isEditing ? currentAgendamento?.title : "",
@@ -64,7 +62,6 @@ export const AgendamentoForm: React.FC<AgendamentoFormProps> = ({
     },
   });
 
-  // Fetch customers from the database
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
@@ -75,7 +72,6 @@ export const AgendamentoForm: React.FC<AgendamentoFormProps> = ({
 
         if (error) throw error;
         
-        // Ensure all required fields from Customer type are present
         const customersWithAllFields = data?.map(customer => ({
           id: customer.id,
           name: customer.name,
@@ -93,7 +89,6 @@ export const AgendamentoForm: React.FC<AgendamentoFormProps> = ({
         
         setCustomers(customersWithAllFields);
 
-        // If we're editing, set the initial customer ID and fetch products
         if (isEditing && currentAgendamento?.customerId) {
           setSelectedCustomerId(currentAgendamento.customerId);
           fetchCustomerProducts(currentAgendamento.customerId);
@@ -111,7 +106,6 @@ export const AgendamentoForm: React.FC<AgendamentoFormProps> = ({
     fetchCustomers();
   }, [isEditing, currentAgendamento]);
 
-  // Fetch products associated with a customer
   const fetchCustomerProducts = async (customerId: string) => {
     setIsLoadingProducts(true);
     try {
@@ -151,11 +145,10 @@ export const AgendamentoForm: React.FC<AgendamentoFormProps> = ({
     }
   };
 
-  // Handle customer change
   const handleCustomerChange = (customerId: string) => {
     setSelectedCustomerId(customerId);
     form.setValue("customerId", customerId);
-    form.setValue("productId", undefined); // Reset product when customer changes
+    form.setValue("productId", undefined);
     fetchCustomerProducts(customerId);
   };
 
@@ -263,7 +256,7 @@ export const AgendamentoForm: React.FC<AgendamentoFormProps> = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Nenhum produto específico</SelectItem>
+                    <SelectItem value="none">Nenhum produto específico</SelectItem>
                     {customerProducts.map((cp) => (
                       <SelectItem key={cp.id} value={cp.id}>
                         {cp.displayName}

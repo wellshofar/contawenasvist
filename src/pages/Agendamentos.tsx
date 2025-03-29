@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -90,14 +89,13 @@ const Agendamentos: React.FC = () => {
     setDialogOpen(true);
   };
 
-  // Filter agendamentos based on search term and status filter
   const filteredAgendamentos = agendamentos.filter(agendamento => {
     const matchesSearch = searchTerm === "" || 
       agendamento.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       agendamento.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (agendamento.description && agendamento.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesStatus = statusFilter === null || agendamento.status === statusFilter;
+    const matchesStatus = statusFilter === null || statusFilter === "all" || agendamento.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
@@ -129,7 +127,7 @@ const Agendamentos: React.FC = () => {
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os status</SelectItem>
+              <SelectItem value="all">Todos os status</SelectItem>
               <SelectItem value="pending">Pendente</SelectItem>
               <SelectItem value="confirmed">Confirmado</SelectItem>
               <SelectItem value="completed">Concluído</SelectItem>

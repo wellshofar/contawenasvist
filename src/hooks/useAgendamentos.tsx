@@ -121,13 +121,16 @@ export const useAgendamentos = () => {
   // Add new appointment
   const addAgendamento = async (values) => {
     try {
+      // Handle the "none" value for productId
+      const productId = values.productId === "none" ? null : values.productId;
+      
       const { error } = await supabase
         .from("service_orders")
         .insert({
           title: values.title,
           description: values.description || null,
           customer_id: values.customerId,
-          customer_product_id: values.productId || null,
+          customer_product_id: productId,
           scheduled_date: values.scheduledDate.toISOString(),
           status: values.status,
           created_by: user?.id || null,
@@ -158,13 +161,16 @@ export const useAgendamentos = () => {
     if (!values.id) return false;
     
     try {
+      // Handle the "none" value for productId
+      const productId = values.productId === "none" ? null : values.productId;
+      
       const { error } = await supabase
         .from("service_orders")
         .update({
           title: values.title,
           description: values.description || null,
           customer_id: values.customerId,
-          customer_product_id: values.productId || null,
+          customer_product_id: productId,
           scheduled_date: values.scheduledDate.toISOString(),
           status: values.status,
           updated_at: new Date().toISOString(),
