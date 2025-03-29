@@ -83,7 +83,8 @@ export const useAgendamentos = () => {
           
         if (!profilesError && profiles) {
           technicianData = profiles.reduce((acc, profile) => {
-            acc[profile.id] = profile.full_name || profile.email;
+            // Fix: Use full_name instead of email
+            acc[profile.id] = profile.full_name || 'Usuário sem nome';
             return acc;
           }, {});
         }

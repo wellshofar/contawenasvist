@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -78,17 +77,14 @@ const Auth: React.FC = () => {
           
           try {
             // Try to get the user if they do exist
-            const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
-              filter: {
-                email: email
-              }
-            });
+            const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers();
             
             if (getUserError) throw getUserError;
             
-            if (users && users.length > 0) {
-              const user = users[0];
-              
+            // Find the user with matching email
+            const user = users?.find(u => u.email === email);
+            
+            if (user) {
               // Try to confirm the user's email
               const { error: updateUserError } = await supabase.auth.admin.updateUserById(
                 user.id,

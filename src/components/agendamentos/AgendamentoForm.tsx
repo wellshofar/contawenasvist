@@ -70,11 +70,28 @@ export const AgendamentoForm: React.FC<AgendamentoFormProps> = ({
       try {
         const { data, error } = await supabase
           .from("customers")
-          .select("id, name, document")
+          .select("id, name, document, email, phone, address, city, state, postal_code, created_at, updated_at, created_by")
           .order("name");
 
         if (error) throw error;
-        setCustomers(data || []);
+        
+        // Ensure all required fields from Customer type are present
+        const customersWithAllFields = data?.map(customer => ({
+          id: customer.id,
+          name: customer.name,
+          email: customer.email || null,
+          phone: customer.phone || null,
+          address: customer.address || null,
+          city: customer.city || null,
+          state: customer.state || null,
+          postal_code: customer.postal_code || null,
+          document: customer.document || null,
+          created_at: customer.created_at,
+          updated_at: customer.updated_at,
+          created_by: customer.created_by || null
+        })) || [];
+        
+        setCustomers(customersWithAllFields);
 
         // If we're editing, set the initial customer ID and fetch products
         if (isEditing && currentAgendamento?.customerId) {
