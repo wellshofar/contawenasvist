@@ -241,6 +241,7 @@ export type Database = {
       }
     }
     Enums: {
+      order_status: "pending" | "in_progress" | "completed" | "cancelled"
       user_role: "admin" | "tecnico" | "atendente"
     }
     CompositeTypes: {
