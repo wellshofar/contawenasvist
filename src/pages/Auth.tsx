@@ -71,6 +71,7 @@ const Auth: React.FC = () => {
       onTabChange={(value) => setIsLoggingIn(value === 'login')}
     >
       {/* Este children está vazio mas é necessário para satisfazer o TypeScript */}
+      <></>
     </AuthLayout>
   );
 };

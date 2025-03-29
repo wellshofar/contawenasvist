@@ -107,6 +107,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { error } = await supabase
         .from('user_settings')
         .upsert({ 
+          id: user.id,
           user_id: user.id, 
           settings: newSettings,
           updated_at: new Date().toISOString()
