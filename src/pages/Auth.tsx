@@ -69,7 +69,9 @@ const Auth: React.FC = () => {
       registerContent={registerContent}
       defaultTab={isLoggingIn ? 'login' : 'register'}
       onTabChange={(value) => setIsLoggingIn(value === 'login')}
-    />
+    >
+      {/* This empty children prop satisfies the TypeScript requirement */}
+    </AuthLayout>
   );
 };
 

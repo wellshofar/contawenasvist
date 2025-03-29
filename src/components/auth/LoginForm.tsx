@@ -6,13 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { MailIcon, LockIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { User } from '@supabase/supabase-js';
-
-// Define a type for the user data returned by listUsers
-interface AdminUserData {
-  users?: User[];
-}
+import { handleLoginError } from "@/utils/authHelpers";
 
 interface LoginFormProps {
   onLogin: (email: string, password: string) => Promise<{error: any}>;
@@ -43,66 +37,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
       const { error } = await onLogin(email, password);
       
       if (error) {
-        console.error("Login error:", error);
-        
-        // Check if the error is that the user is not confirmed
-        if (error.message.includes("Email not confirmed")) {
-          toast({
-            title: "E-mail não confirmado",
-            description: "Tentando confirmar seu e-mail automaticamente...",
-          });
-          
-          try {
-            // Try to get the user if they do exist
-            const { data, error: getUserError } = await supabase.auth.admin.listUsers() as { 
-              data: AdminUserData; 
-              error: any;
-            };
-            
-            if (getUserError) throw getUserError;
-            
-            // Find the user with matching email
-            const userToConfirm = data?.users?.find(u => u.email === email);
-            
-            if (userToConfirm) {
-              // Try to confirm the user's email
-              const { error: updateUserError } = await supabase.auth.admin.updateUserById(
-                userToConfirm.id,
-                { email_confirm: true }
-              );
-              
-              if (updateUserError) throw updateUserError;
-              
-              toast({
-                title: "E-mail confirmado",
-                description: "Tentando fazer login novamente...",
-              });
-              
-              // Try to login again
-              const { error: retryError } = await onLogin(email, password);
-              
-              if (retryError) {
-                throw retryError;
-              } else {
-                // If login successful, redirect to dashboard
-                navigate('/', { replace: true });
-              }
-            }
-          } catch (confirmError) {
-            console.error("Error confirming email:", confirmError);
-            toast({
-              title: "Erro ao confirmar e-mail",
-              description: "Por favor, verifique seu e-mail e clique no link de confirmação.",
-              variant: "destructive",
-            });
-          }
-        } else {
-          toast({
-            title: "Erro ao fazer login",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
+        // Handle login error using the extracted helper function
+        await handleLoginError(
+          error, 
+          email, 
+          password,
+          // Function to retry login
+          async () => await onLogin(email, password)
+        );
       } else {
         // If login successful, redirect to dashboard
         navigate('/', { replace: true });
