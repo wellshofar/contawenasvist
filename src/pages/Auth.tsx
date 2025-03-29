@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -77,17 +78,17 @@ const Auth: React.FC = () => {
           
           try {
             // Try to get the user if they do exist
-            const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers();
+            const { data, error: getUserError } = await supabase.auth.admin.listUsers();
             
             if (getUserError) throw getUserError;
             
             // Find the user with matching email
-            const user = users?.find(u => u.email === email);
+            const userToConfirm = data?.users?.find(u => u.email === email);
             
-            if (user) {
+            if (userToConfirm) {
               // Try to confirm the user's email
               const { error: updateUserError } = await supabase.auth.admin.updateUserById(
-                user.id,
+                userToConfirm.id,
                 { email_confirm: true }
               );
               
