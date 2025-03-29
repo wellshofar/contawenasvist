@@ -70,7 +70,7 @@ const Auth: React.FC = () => {
       defaultTab={isLoggingIn ? 'login' : 'register'}
       onTabChange={(value) => setIsLoggingIn(value === 'login')}
     >
-      {/* This empty children prop satisfies the TypeScript requirement */}
+      {/* Este children está vazio mas é necessário para satisfazer o TypeScript */}
     </AuthLayout>
   );
 };
