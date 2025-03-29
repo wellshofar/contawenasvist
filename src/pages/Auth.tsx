@@ -10,6 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { MailIcon, LockIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { User } from '@supabase/supabase-js';
+
+// Define a type for the user data returned by listUsers
+interface AdminUserData {
+  users?: User[];
+}
 
 const Auth: React.FC = () => {
   const { signIn, signUp, user, loading } = useAuth();
@@ -78,7 +84,10 @@ const Auth: React.FC = () => {
           
           try {
             // Try to get the user if they do exist
-            const { data, error: getUserError } = await supabase.auth.admin.listUsers();
+            const { data, error: getUserError } = await supabase.auth.admin.listUsers() as { 
+              data: AdminUserData; 
+              error: any;
+            };
             
             if (getUserError) throw getUserError;
             
