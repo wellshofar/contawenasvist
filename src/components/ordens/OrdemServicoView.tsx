@@ -1,3 +1,4 @@
+
 import React from "react";
 import { ServiceOrder, Customer, Product, CustomerProduct } from "@/types/supabase";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,16 @@ declare module "jspdf" {
       finalY: number;
     };
     internal: {
+      events: any;
+      scaleFactor: number;
+      pageSize: {
+        width: number;
+        getWidth: () => number;
+        height: number;
+        getHeight: () => number;
+      };
       pages: any[];
+      getEncryptor(objectId: number): (data: string) => string;
       getNumberOfPages: () => number;
     }
   }
