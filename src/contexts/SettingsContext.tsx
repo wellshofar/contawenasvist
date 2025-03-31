@@ -67,7 +67,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (userData) {
           setUserSettings({
             ...defaultUserSettings,
-            ...userData.settings,
+            ...(userData.settings as UserSettings || {})
           });
         }
 
@@ -84,7 +84,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (sysData) {
           setSystemSettings({
             ...defaultSystemSettings,
-            ...sysData.settings,
+            ...(sysData.settings as SystemSettings || {})
           });
         }
       } catch (error) {
