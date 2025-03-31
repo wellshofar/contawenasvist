@@ -11,12 +11,9 @@ import autoTable from "jspdf-autotable";
 // Define augmented types to handle the autoTable plugin
 declare module "jspdf" {
   interface jsPDF {
-    autoTable: typeof autoTable;
+    autoTable: (options: any) => any;
     previousAutoTable?: {
       finalY: number;
-    };
-    internal: {
-      getNumberOfPages: () => number;
     };
   }
 }
@@ -84,7 +81,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
     doc.text("Dados do Cliente", 15, 70);
     
     // Create customer info table
-    doc.autoTable({
+    autoTable(doc, {
       startY: 75,
       head: [["Cliente", "CPF/CNPJ", "Telefone"]],
       body: [
@@ -94,7 +91,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
     
     let finalY = doc.previousAutoTable?.finalY || 75;
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: finalY + 10,
       head: [["Endereço", "Cidade/UF", "CEP"]],
       body: [
@@ -111,7 +108,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
     doc.setFontSize(14);
     doc.text("Produto", 15, finalY + 20);
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: finalY + 25,
       head: [["Produto", "Modelo", "Data de Instalação"]],
       body: [
@@ -139,7 +136,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
       serviceItemRows.push(["", "Nenhum item de serviço registrado", ""]);
     }
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: finalY + 25,
       head: [["Código", "Descrição", "Qtde"]],
       body: serviceItemRows,
@@ -152,11 +149,11 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
     doc.text("Assinatura do Cliente: _______________________________", 15, finalY + 45);
     
     // Add page number
-    const totalPages = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(10);
-      doc.text(`Página ${i} de ${totalPages}`, 190, 287, { align: "right" });
+      doc.text(`Página ${i} de ${pageCount}`, 190, 287, { align: "right" });
     }
     
     // Save the PDF
@@ -305,7 +302,8 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
         </div>
       </div>
 
-      <style>{`
+      <style>
+        {`
         @media print {
           body * {
             visibility: hidden;
@@ -332,7 +330,8 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
             display: none;
           }
         }
-      `}</style>
+      `}
+      </style>
     </>
   );
 };
