@@ -21,7 +21,7 @@ declare module "jspdf" {
       };
       pages: any[];
       getEncryptor(objectId: number): (data: string) => string;
-      getNumberOfPages(): number;
+      getNumberOfPages(): number; // Added this method which was missing
     }
   }
 }
