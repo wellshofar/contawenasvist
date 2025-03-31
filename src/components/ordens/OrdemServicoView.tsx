@@ -1,4 +1,3 @@
-
 import React from "react";
 import { ServiceOrder, Customer, Product, CustomerProduct } from "@/types/supabase";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,10 @@ declare module "jspdf" {
     previousAutoTable?: {
       finalY: number;
     };
+    internal: {
+      pages: any[];
+      getNumberOfPages: () => number;
+    }
   }
 }
 
