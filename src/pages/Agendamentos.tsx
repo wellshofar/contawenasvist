@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
-import { Calendar, Clock, Edit, Trash2, Plus, Filter, ListFilter } from "lucide-react";
+import { Calendar, Clock, Edit, Trash2, Plus, Filter, ListFilter, FileText, Printer, Download } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -39,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import AgendamentoReportDialog from "@/components/relatorios/AgendamentoReportDialog";
 
 const statusColors = {
   pending: "bg-yellow-500",
@@ -70,6 +72,7 @@ const Agendamentos: React.FC = () => {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   const handleEdit = (agendamento) => {
     setCurrentAgendamento(agendamento);
@@ -99,6 +102,41 @@ const Agendamentos: React.FC = () => {
     
     return matchesSearch && matchesStatus;
   });
+
+  const exportToCSV = (agendamentos) => {
+    // Create CSV header row
+    const headers = ['Título', 'Cliente', 'Data', 'Horário', 'Status', 'Descrição'];
+    
+    // Convert each appointment to a row of data
+    const rows = agendamentos.map(agendamento => {
+      const date = new Date(agendamento.scheduledDate);
+      return [
+        agendamento.title,
+        agendamento.customerName,
+        format(date, "dd/MM/yyyy", { locale: ptBR }),
+        format(date, "HH:mm", { locale: ptBR }),
+        statusTranslations[agendamento.status],
+        agendamento.description || ''
+      ];
+    });
+    
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `relatorio_agendamentos_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-6">
@@ -136,10 +174,36 @@ const Agendamentos: React.FC = () => {
           </Select>
         </div>
 
-        <Button onClick={handleNewAgendamento} className="shrink-0">
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Agendamento
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <FileText className="h-4 w-4" /> Relatórios
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setReportDialogOpen(true)}>
+                <FileText className="mr-2 h-4 w-4" />
+                Gerar relatório
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.print()}>
+                <Printer className="mr-2 h-4 w-4" />
+                Imprimir
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => exportToCSV(filteredAgendamentos)}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Exportar CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button onClick={handleNewAgendamento} className="gap-2">
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Agendamento
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -244,6 +308,13 @@ const Agendamentos: React.FC = () => {
           />
         </DialogContent>
       </Dialog>
+
+      <AgendamentoReportDialog
+        open={reportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        agendamentos={filteredAgendamentos}
+        statusTranslations={statusTranslations}
+      />
     </div>
   );
 };
