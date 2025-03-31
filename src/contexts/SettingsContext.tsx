@@ -65,9 +65,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
 
         if (userData) {
+          // Safely handle the settings conversion with proper type checks
+          const storedSettings = userData.settings as Record<string, any>;
           setUserSettings({
             ...defaultUserSettings,
-            ...(userData.settings as UserSettings || {})
+            ...(storedSettings as Partial<UserSettings>)
           });
         }
 
@@ -82,9 +84,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
 
         if (sysData) {
+          // Safely handle the settings conversion with proper type checks
+          const storedSettings = sysData.settings as Record<string, any>;
           setSystemSettings({
             ...defaultSystemSettings,
-            ...(sysData.settings as SystemSettings || {})
+            ...(storedSettings as Partial<SystemSettings>)
           });
         }
       } catch (error) {
