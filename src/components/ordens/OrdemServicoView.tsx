@@ -8,6 +8,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+// Define augmented types to handle the autoTable plugin
+declare module "jspdf" {
+  interface jsPDF {
+    autoTable: typeof autoTable;
+    previousAutoTable?: {
+      finalY: number;
+    };
+    internal: {
+      getNumberOfPages: () => number;
+    };
+  }
+}
+
 interface ServiceItem {
   id: string;
   productId: string;
@@ -71,7 +84,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
     doc.text("Dados do Cliente", 15, 70);
     
     // Create customer info table
-    autoTable(doc, {
+    doc.autoTable({
       startY: 75,
       head: [["Cliente", "CPF/CNPJ", "Telefone"]],
       body: [
@@ -79,8 +92,10 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
       ],
     });
     
-    autoTable(doc, {
-      startY: doc.previousAutoTable.finalY + 10,
+    let finalY = doc.previousAutoTable?.finalY || 75;
+    
+    doc.autoTable({
+      startY: finalY + 10,
       head: [["Endereço", "Cidade/UF", "CEP"]],
       body: [
         [
@@ -92,11 +107,12 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
     });
     
     // Add product information
+    finalY = doc.previousAutoTable?.finalY || finalY + 10;
     doc.setFontSize(14);
-    doc.text("Produto", 15, doc.previousAutoTable.finalY + 20);
+    doc.text("Produto", 15, finalY + 20);
     
-    autoTable(doc, {
-      startY: doc.previousAutoTable.finalY + 25,
+    doc.autoTable({
+      startY: finalY + 25,
       head: [["Produto", "Modelo", "Data de Instalação"]],
       body: [
         [
@@ -109,8 +125,9 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
     });
     
     // Add service items
+    finalY = doc.previousAutoTable?.finalY || finalY + 25;
     doc.setFontSize(14);
-    doc.text("Peças/Serviços", 15, doc.previousAutoTable.finalY + 20);
+    doc.text("Peças/Serviços", 15, finalY + 20);
     
     const serviceItemRows = serviceItems.map(item => [
       item.code,
@@ -122,16 +139,17 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
       serviceItemRows.push(["", "Nenhum item de serviço registrado", ""]);
     }
     
-    autoTable(doc, {
-      startY: doc.previousAutoTable.finalY + 25,
+    doc.autoTable({
+      startY: finalY + 25,
       head: [["Código", "Descrição", "Qtde"]],
       body: serviceItemRows,
     });
     
     // Add signature fields
+    finalY = doc.previousAutoTable?.finalY || finalY + 25;
     doc.setFontSize(12);
-    doc.text("Assinatura do Técnico: _______________________________", 15, doc.previousAutoTable.finalY + 30);
-    doc.text("Assinatura do Cliente: _______________________________", 15, doc.previousAutoTable.finalY + 45);
+    doc.text("Assinatura do Técnico: _______________________________", 15, finalY + 30);
+    doc.text("Assinatura do Cliente: _______________________________", 15, finalY + 45);
     
     // Add page number
     const totalPages = doc.internal.getNumberOfPages();
@@ -287,7 +305,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
         </div>
       </div>
 
-      <style jsx global>{`
+      <style>{`
         @media print {
           body * {
             visibility: hidden;
