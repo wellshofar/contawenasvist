@@ -89,6 +89,30 @@ export const sendEmailNotification = async ({
  * Send a notification to Make (Integromat) webhook
  */
 export const sendToMakeWebhook = async (data: Record<string, any>) => {
+  // Primeiro, tenta usar o webhook armazenado no localStorage
+  const localWebhookUrl = localStorage.getItem('webhookUrl');
+  
+  if (localWebhookUrl) {
+    try {
+      // Tenta enviar diretamente para o webhook configurado
+      const response = await fetch(localWebhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+      
+      if (response.ok) {
+        console.log("Webhook enviado com sucesso para:", localWebhookUrl);
+        return { success: true };
+      }
+    } catch (error) {
+      console.error("Erro ao enviar para webhook local:", error);
+    }
+  }
+  
+  // Se não conseguir usar o webhook local, usa o método padrão via função do Supabase
   return sendNotification({
     type: "webhook",
     to: "make",

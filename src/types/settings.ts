@@ -12,4 +12,7 @@ export interface SystemSettings {
   address?: string;
   phone?: string;
   email?: string;
+  evolutionInstance?: string;
+  evolutionToken?: string;
+  evolutionUrl?: string;
 }

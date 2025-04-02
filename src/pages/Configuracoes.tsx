@@ -1,11 +1,12 @@
 
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, User, Shield, Building } from "lucide-react";
+import { Settings, User, Shield, Building, Webhook } from "lucide-react";
 import UserSettingsForm from "@/components/settings/UserSettingsForm";
 import SystemSettingsForm from "@/components/settings/SystemSettingsForm";
 import ProfileSettingsForm from "@/components/settings/ProfileSettingsForm";
 import SecuritySettingsForm from "@/components/settings/SecuritySettingsForm";
+import IntegrationsSettingsForm from "@/components/settings/IntegrationsSettingsForm";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -29,7 +30,7 @@ const Configuracoes: React.FC = () => {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span className="hidden md:inline">Perfil</span>
@@ -43,10 +44,16 @@ const Configuracoes: React.FC = () => {
               <span className="hidden md:inline">Preferências</span>
             </TabsTrigger>
             {isAdmin && (
-              <TabsTrigger value="company" className="flex items-center gap-2">
-                <Building className="h-4 w-4" />
-                <span className="hidden md:inline">Empresa</span>
-              </TabsTrigger>
+              <>
+                <TabsTrigger value="company" className="flex items-center gap-2">
+                  <Building className="h-4 w-4" />
+                  <span className="hidden md:inline">Empresa</span>
+                </TabsTrigger>
+                <TabsTrigger value="integrations" className="flex items-center gap-2">
+                  <Webhook className="h-4 w-4" />
+                  <span className="hidden md:inline">Integrações</span>
+                </TabsTrigger>
+              </>
             )}
           </TabsList>
 
@@ -67,10 +74,17 @@ const Configuracoes: React.FC = () => {
             </TabsContent>
 
             {isAdmin && (
-              <TabsContent value="company" className="space-y-6">
-                <h2 className="text-2xl font-semibold mb-4">Dados da Empresa</h2>
-                <SystemSettingsForm />
-              </TabsContent>
+              <>
+                <TabsContent value="company" className="space-y-6">
+                  <h2 className="text-2xl font-semibold mb-4">Dados da Empresa</h2>
+                  <SystemSettingsForm />
+                </TabsContent>
+                
+                <TabsContent value="integrations" className="space-y-6">
+                  <h2 className="text-2xl font-semibold mb-4">Integrações Externas</h2>
+                  <IntegrationsSettingsForm />
+                </TabsContent>
+              </>
             )}
           </div>
         </Tabs>

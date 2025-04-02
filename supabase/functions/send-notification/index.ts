@@ -44,9 +44,18 @@ serve(async (req) => {
     
     // Evolution API WhatsApp integration
     if (type === "whatsapp") {
-      const evolutionApiUrl = "https://api.chatzapbot.com.br";
-      const instanceName = "juniorhoken";
-      const instanceToken = "2269A7D64EF2-4E62-8AD8-78CE9292C0B9";
+      // Busca configurações do Evolution API do banco
+      const { data: systemSettings } = await supabase
+        .from('system_settings')
+        .select('settings')
+        .single();
+      
+      const settings = systemSettings?.settings || {};
+      
+      // Usa valores da configuração ou valores padrão
+      const evolutionApiUrl = settings.evolutionUrl || "https://api.chatzapbot.com.br";
+      const instanceName = settings.evolutionInstance || "juniorhoken";
+      const instanceToken = settings.evolutionToken || "2269A7D64EF2-4E62-8AD8-78CE9292C0B9";
       
       try {
         // Format phone number (remove non-numeric characters and ensure it has country code)
@@ -56,6 +65,7 @@ serve(async (req) => {
         }
         
         console.log(`Sending WhatsApp to formatted number: ${phoneNumber}`);
+        console.log(`Using Evolution API: ${evolutionApiUrl}/${instanceName}`);
         
         const whatsappResponse = await fetch(`${evolutionApiUrl}/message/text/${instanceName}`, {
           method: "POST",
