@@ -15,4 +15,5 @@ export interface SystemSettings {
   evolutionInstance?: string;
   evolutionToken?: string;
   evolutionUrl?: string;
+  webhookUrl?: string;
 }
