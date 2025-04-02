@@ -1,4 +1,3 @@
-
 // Type definitions for PDF and service order types
 import { jsPDF } from "jspdf";
 import { ServiceOrder, Customer, Product, CustomerProduct } from "@/types/supabase";
@@ -11,7 +10,7 @@ declare module "jspdf" {
       finalY: number;
     };
     internal: {
-      events: any;
+      events: PubSub;
       scaleFactor: number;
       pageSize: {
         width: number;
@@ -19,7 +18,7 @@ declare module "jspdf" {
         height: number;
         getHeight: () => number;
       };
-      pages: any[];
+      pages: number[];
       getEncryptor(objectId: number): (data: string) => string;
       getNumberOfPages(): number;
     }
