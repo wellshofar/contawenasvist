@@ -1,4 +1,3 @@
-
 // Type definitions for PDF and service order types
 import { jsPDF } from "jspdf";
 import { ServiceOrder, Customer, Product, CustomerProduct } from "@/types/supabase";
