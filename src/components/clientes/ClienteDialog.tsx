@@ -14,6 +14,13 @@ const ClienteDialog: React.FC<ClienteDialogProps> = ({
   defaultValues,
   onSubmit,
 }) => {
+  const handleCancel = () => {
+    const closeButton = document.querySelector('[data-radix-dialog-close]');
+    if (closeButton && 'click' in closeButton) {
+      (closeButton as HTMLElement).click();
+    }
+  };
+  
   return (
     <DialogContent className="sm:max-w-[600px]">
       <DialogHeader>
@@ -28,7 +35,7 @@ const ClienteDialog: React.FC<ClienteDialogProps> = ({
         defaultValues={defaultValues} 
         onSubmit={onSubmit} 
         isEditing={isEditing} 
-        onCancel={() => document.querySelector('[data-radix-dialog-close]')?.click()} 
+        onCancel={handleCancel} 
       />
     </DialogContent>
   );
