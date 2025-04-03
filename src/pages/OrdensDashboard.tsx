@@ -69,14 +69,16 @@ const OrdensDashboard: React.FC = () => {
           </Card>
         </>
       ) : (
-        <OrdemServicoView 
-          order={selectedOrder!} 
-          customer={mockCustomers.find(c => c.id === selectedOrder!.customer_id)!}
-          customerProduct={mockCustomerProducts.find(cp => cp.id === selectedOrder!.customer_product_id)!}
-          product={mockProducts.find(p => p.id === mockCustomerProducts.find(cp => cp.id === selectedOrder!.customer_product_id)?.product_id)!}
-          serviceItems={mockServiceItems.filter(item => item.productId === mockCustomerProducts.find(cp => cp.id === selectedOrder!.customer_product_id)?.product_id)}
-          onBack={handleCloseOrderView}
-        />
+        selectedOrder && (
+          <OrdemServicoView 
+            order={selectedOrder}
+            customer={mockCustomers.find(c => c.id === selectedOrder.customer_id)!}
+            customerProduct={mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id)!}
+            product={mockProducts.find(p => p.id === mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id)?.product_id)!}
+            serviceItems={mockServiceItems.filter(item => item.productId === mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id)?.product_id)}
+            onBack={handleCloseOrderView}
+          />
+        )
       )}
     </div>
   );

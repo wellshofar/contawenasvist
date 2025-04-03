@@ -50,16 +50,16 @@ export const useProfileData = () => {
       // Try to get avatar URL separately to handle cases where column might not exist yet
       let avatarUrlValue = null;
       try {
-        const { data: avatarData, error: avatarError } = await supabase
-          .from('profiles')
-          .select('avatar_url')
-          .eq('id', user.id)
-          .single();
+        // Use a separate query just for avatar_url that can safely fail
+        const { data: avatarData } = await supabase
+          .rpc('get_profile_avatar_url', { user_id: user.id });
         
-        if (!avatarError && avatarData && avatarData.avatar_url) {
-          avatarUrlValue = avatarData.avatar_url;
+        if (avatarData) {
+          avatarUrlValue = avatarData;
           // Download and display avatar
-          downloadAvatar(avatarData.avatar_url);
+          if (avatarData) {
+            downloadAvatar(avatarData);
+          }
         }
       } catch (avatarError) {
         console.log('Avatar URL might not exist in schema:', avatarError);
@@ -99,8 +99,8 @@ export const useProfileData = () => {
     }
   };
 
-  const updateProfile = async (data: ProfileFormData) => {
-    if (!user) return;
+  const updateProfile = async (data: ProfileFormData): Promise<boolean> => {
+    if (!user) return false;
     
     try {
       // Create update data

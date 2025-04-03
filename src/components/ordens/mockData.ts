@@ -88,10 +88,42 @@ export const mockCustomerProducts: CustomerProduct[] = [
 
 // Mock service items data
 export const mockServiceItems: ServiceItem[] = [
-  { id: "1", productId: "2", code: "6918", name: "DISPOSITIVO FILTRANTE MEMB. UF 400/14003 FID", quantity: 1 },
-  { id: "2", productId: "2", code: "6914", name: "DISPOSITIVO FILT. PRE CARBON 400/14003- FIDEL", quantity: 1 },
-  { id: "3", productId: "2", code: "6921", name: "DISPOSITIVO FILT POS CARBON 5''/93/14003 FIDEL", quantity: 1 },
-  { id: "4", productId: "2", code: "6912", name: "DISPOSITIVO FILT. SEDIMENTO HK 400/14003-FIDE", quantity: 1 },
+  { 
+    id: "1", 
+    productId: "2", 
+    code: "6918", 
+    name: "DISPOSITIVO FILTRANTE MEMB. UF 400/14003 FID", 
+    quantity: 1,
+    description: "DISPOSITIVO FILTRANTE MEMB. UF 400/14003 FID",
+    price: 75.00
+  },
+  { 
+    id: "2", 
+    productId: "2", 
+    code: "6914", 
+    name: "DISPOSITIVO FILT. PRE CARBON 400/14003- FIDEL", 
+    quantity: 1,
+    description: "DISPOSITIVO FILT. PRE CARBON 400/14003- FIDEL",
+    price: 65.00
+  },
+  { 
+    id: "3", 
+    productId: "2", 
+    code: "6921", 
+    name: "DISPOSITIVO FILT POS CARBON 5''/93/14003 FIDEL", 
+    quantity: 1,
+    description: "DISPOSITIVO FILT POS CARBON 5''/93/14003 FIDEL",
+    price: 60.00
+  },
+  { 
+    id: "4", 
+    productId: "2", 
+    code: "6912", 
+    name: "DISPOSITIVO FILT. SEDIMENTO HK 400/14003-FIDE", 
+    quantity: 1,
+    description: "DISPOSITIVO FILT. SEDIMENTO HK 400/14003-FIDE",
+    price: 55.00
+  },
 ];
 
 // Mock orders data

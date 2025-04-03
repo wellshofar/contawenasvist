@@ -30,7 +30,7 @@ export const generateServiceOrderPDF = (
   doc.setFontSize(12);
   doc.text(`Data/Hora: ${formatDate(order.created_at)}`, 15, 35);
   doc.text(`Status: ${order.status}`, 15, 42);
-  doc.text(`Agendado para: ${formatDate(order.scheduled_date)}`, 15, 49);
+  doc.text(`Agendado para: ${formatDate(order.scheduled_date || '')}`, 15, 49);
   doc.text(`Técnico: ${order.assigned_to || "-"}`, 15, 56);
   
   // Add customer information

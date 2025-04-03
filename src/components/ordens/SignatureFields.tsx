@@ -2,7 +2,7 @@
 import React from "react";
 import { SignatureFieldProps } from "./types";
 
-const SignatureFields: React.FC<SignatureFieldProps> = () => {
+const SignatureFields: React.FC = () => {
   return (
     <div className="mt-12 grid grid-cols-2 gap-8">
       <div className="text-center">

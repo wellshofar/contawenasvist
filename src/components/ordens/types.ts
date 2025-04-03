@@ -8,6 +8,7 @@ declare module 'jspdf' {
     autoTable: (options: any) => jsPDF;
     previousAutoTable: any;
     lastAutoTable: any;
+    internal: any;
     getNumberOfPages: () => number;
   }
 }
@@ -18,43 +19,73 @@ export interface ServiceItem {
   description: string;
   quantity: number;
   price: number;
+  code: string;  // Added code property
+  name: string;  // Added name property
+  productId?: string; // Added productId property
 }
 
 export interface CustomerInfoProps {
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
+  customer: {
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    document: string;
+    postal_code: string;
+  };
 }
 
 export interface ProductInfoProps {
-  name: string;
-  model: string;
+  product: {
+    name: string;
+    model: string;
+  };
+  customerProduct: {
+    installation_date: string | null;
+  };
 }
 
 export interface OrderHeaderProps {
-  orderNumber: string;
-  date: string;
-  printMode?: boolean;
+  order: {
+    id: string;
+  };
+  handlePrint: () => void;
+  handleDownloadPDF: () => void;
+  onBack: () => void;
 }
 
 export interface OrdemServicoViewProps {
-  orderData: {
+  order: {
     id: string;
-    number: string;
-    date: string;
-    customer: CustomerInfoProps;
-    product: ProductInfoProps;
-    items: ServiceItem[];
-    technicalReport: string;
-    customerSignature: string | null;
-    technicianSignature: string | null;
+    title: string;
+    created_at: string;
+    scheduled_date: string | null;
+    status: string;
+    assigned_to: string | null;
+    created_by: string | null;
   };
-  printMode?: boolean;
+  customer: {
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    document: string;
+    postal_code: string;
+  };
+  product: {
+    name: string;
+    model: string;
+  };
+  customerProduct: {
+    id: string;
+    installation_date: string | null;
+  };
+  serviceItems: ServiceItem[];
+  onBack: () => void;
 }
 
 export interface ServiceItemsProps {
-  items: ServiceItem[];
+  serviceItems: ServiceItem[];
 }
 
 export interface SignatureFieldProps {
