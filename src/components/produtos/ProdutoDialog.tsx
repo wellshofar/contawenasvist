@@ -28,7 +28,7 @@ const ProdutoDialog: React.FC<ProdutoDialogProps> = ({
         defaultValues={defaultValues} 
         onSubmit={onSubmit} 
         isEditing={isEditing} 
-        onCancel={() => {}} 
+        onCancel={() => document.querySelector('[data-radix-dialog-close]')?.click()} 
       />
     </DialogContent>
   );

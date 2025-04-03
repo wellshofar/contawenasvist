@@ -28,7 +28,7 @@ const ClienteDialog: React.FC<ClienteDialogProps> = ({
         defaultValues={defaultValues} 
         onSubmit={onSubmit} 
         isEditing={isEditing} 
-        onCancel={() => {}} 
+        onCancel={() => document.querySelector('[data-radix-dialog-close]')?.click()} 
       />
     </DialogContent>
   );
