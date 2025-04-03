@@ -1,15 +1,11 @@
 
-// Type definitions for PDF and service order types
 import { jsPDF } from "jspdf";
-import { ServiceOrder, Customer, Product, CustomerProduct } from "@/types/supabase";
+import { TableProps } from "jspdf-autotable";
+import { PubSub } from "@/types/supabase";
 
-// Define augmented types to handle the autoTable plugin
+// Extend the internal property of jsPDF to include getNumberOfPages
 declare module "jspdf" {
   interface jsPDF {
-    autoTable: (options: any) => any;
-    previousAutoTable?: {
-      finalY: number;
-    };
     internal: {
       events: PubSub;
       scaleFactor: number;
@@ -22,51 +18,49 @@ declare module "jspdf" {
       pages: number[];
       getEncryptor(objectId: number): (data: string) => string;
       getNumberOfPages(): number;
-    }
+    };
+    autoTable: (options: TableProps) => jsPDF;
   }
 }
 
-export interface ServiceItem {
+export interface OrdemServicoData {
   id: string;
-  productId: string;
-  code: string;
-  name: string;
-  quantity: number;
+  title: string;
+  description?: string;
+  customer: {
+    name: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    document?: string;
+  };
+  product?: {
+    name: string;
+    model?: string;
+  };
+  serviceItems: {
+    description: string;
+    quantity: number;
+    value: number;
+  }[];
+  subtotal: number;
+  discount?: number;
+  total: number;
+  createdAt: string;
+  status: string;
+  technician?: {
+    name: string;
+  };
+  notes?: string;
+  signatures?: {
+    client?: string;
+    technician?: string;
+  };
 }
 
-export interface OrdemServicoViewProps {
-  order: ServiceOrder;
-  customer: Customer;
-  customerProduct: CustomerProduct;
-  product: Product;
-  serviceItems: ServiceItem[];
-  onBack: () => void;
+export interface PdfOptions {
+  showHeader?: boolean;
+  showFooter?: boolean;
+  showSignatures?: boolean;
+  showNotes?: boolean;
 }
-
-export interface OrderHeaderProps {
-  order: ServiceOrder;
-  handlePrint: () => void;
-  handleDownloadPDF: () => void;
-  onBack: () => void;
-}
-
-export interface CustomerInfoProps {
-  customer: Customer;
-}
-
-export interface ProductInfoProps {
-  product: Product;
-  customerProduct: CustomerProduct;
-}
-
-export interface ServiceItemsProps {
-  serviceItems: ServiceItem[];
-}
-
-export interface SignatureFieldProps {}
-
-export const formatDate = (dateString: string | null): string => {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("pt-BR") + " " + date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-};

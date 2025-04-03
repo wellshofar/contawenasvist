@@ -48,15 +48,23 @@ const WebhookSettingsForm: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Enviar um teste para o webhook configurado
-      await sendToMakeWebhook({
-        event: "test",
-        source: "webhook_test",
-        timestamp: new Date().toISOString(),
-        data: {
-          message: "Este é um teste de integração do sistema HOKEN",
-        }
+      // Direct webhook call to test without going through supabase function
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          event: "test",
+          source: "webhook_test",
+          timestamp: new Date().toISOString(),
+          data: {
+            message: "Este é um teste de integração do sistema HOKEN"
+          }
+        })
       });
+      
+      console.log("Webhook test response:", response);
       
       toast({
         title: "Teste enviado",
@@ -64,11 +72,30 @@ const WebhookSettingsForm: React.FC = () => {
       });
     } catch (error) {
       console.error("Erro ao testar webhook:", error);
-      toast({
-        title: "Erro no teste",
-        description: "Não foi possível enviar o teste para o webhook.",
-        variant: "destructive",
-      });
+      
+      // Fallback to using the notifications utility
+      try {
+        await sendToMakeWebhook({
+          event: "test",
+          source: "webhook_test",
+          timestamp: new Date().toISOString(),
+          data: {
+            message: "Este é um teste de integração do sistema HOKEN",
+          }
+        });
+        
+        toast({
+          title: "Teste enviado",
+          description: "O teste foi enviado para o webhook via função do Supabase.",
+        });
+      } catch (secondError) {
+        console.error("Erro ao enviar webhook via função:", secondError);
+        toast({
+          title: "Erro no teste",
+          description: "Não foi possível enviar o teste para o webhook.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }

@@ -13,7 +13,6 @@ import { useAuth } from "@/contexts/AuthContext";
 const Configuracoes: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
-  const isAdmin = user?.role === 'admin';
 
   return (
     <SettingsProvider>
