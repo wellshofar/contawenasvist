@@ -21,6 +21,7 @@ const ProfileSettingsForm: React.FC = () => {
     setIsSubmitting(true);
     await updateProfile(data);
     setIsSubmitting(false);
+    return true; // Return true to match the expected return type
   };
 
   if (isLoading) {

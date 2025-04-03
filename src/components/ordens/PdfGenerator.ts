@@ -95,8 +95,8 @@ export const generateServiceOrderPDF = (
   doc.text("Peças/Serviços", 15, finalY + 20);
   
   const serviceItemRows = serviceItems.map(item => [
-    item.code,
-    item.name,
+    item.code || "-",
+    item.name || item.description,
     item.quantity.toString()
   ]);
   

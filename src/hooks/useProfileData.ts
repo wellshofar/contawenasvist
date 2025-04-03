@@ -35,43 +35,36 @@ export const useProfileData = () => {
     try {
       setIsLoading(true);
       
-      // Get basic profile data
+      // Try to get profile data including avatar_url
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, phone, email')
+        .select('full_name, phone, email, avatar_url')
         .eq('id', user.id)
         .single();
       
       if (error) {
-        console.error('Error fetching profile:', error);
-        return;
-      }
-      
-      // Try to get avatar URL separately to handle cases where column might not exist yet
-      let avatarUrlValue = null;
-      try {
-        // Use a separate query just for avatar_url that can safely fail
-        const { data: avatarData } = await supabase
-          .rpc('get_profile_avatar_url', { user_id: user.id });
-        
-        if (avatarData) {
-          avatarUrlValue = avatarData;
-          // Download and display avatar
-          if (avatarData) {
-            downloadAvatar(avatarData);
-          }
+        // If error is about avatar_url not existing, try without it
+        if (error.message.includes("avatar_url")) {
+          const { data: basicData, error: basicError } = await supabase
+            .from('profiles')
+            .select('full_name, phone, email')
+            .eq('id', user.id)
+            .single();
+          
+          if (basicError) throw basicError;
+          
+          setProfileData(basicData);
+        } else {
+          throw error;
         }
-      } catch (avatarError) {
-        console.log('Avatar URL might not exist in schema:', avatarError);
+      } else {
+        setProfileData(data);
+        
+        // Download and display avatar
+        if (data?.avatar_url) {
+          downloadAvatar(data.avatar_url);
+        }
       }
-      
-      const profileInfo = {
-        ...data,
-        avatar_url: avatarUrlValue
-      };
-      
-      setProfileData(profileInfo);
-      
     } catch (error) {
       console.error('Error fetching profile data:', error);
       toast({

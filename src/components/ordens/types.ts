@@ -19,9 +19,9 @@ export interface ServiceItem {
   description: string;
   quantity: number;
   price: number;
-  code: string;  // Added code property
-  name: string;  // Added name property
-  productId?: string; // Added productId property
+  code: string;
+  name: string;
+  productId?: string;
 }
 
 export interface CustomerInfoProps {
@@ -63,6 +63,11 @@ export interface OrdemServicoViewProps {
     status: string;
     assigned_to: string | null;
     created_by: string | null;
+    customer_id?: string;
+    customer_product_id?: string | null;
+    description?: string | null;
+    completed_date?: string | null;
+    updated_at?: string;
   };
   customer: {
     name: string;
@@ -79,6 +84,13 @@ export interface OrdemServicoViewProps {
   customerProduct: {
     id: string;
     installation_date: string | null;
+    customer_id?: string;
+    product_id?: string;
+    next_maintenance_date?: string | null;
+    notes?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    created_by?: string | null;
   };
   serviceItems: ServiceItem[];
   onBack: () => void;

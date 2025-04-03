@@ -58,17 +58,14 @@ const ProfileAvatarUpload: React.FC<ProfileAvatarUploadProps> = ({
         .from('avatars')
         .getPublicUrl(filePath);
       
-      // Try to set avatar_url via RPC function to avoid column existence issues
-      const { error: rpcError } = await supabase.rpc(
-        'update_profile_avatar_url',
-        { 
-          user_id: user?.id,
-          avatar_url_value: filePath
-        }
-      );
+      // Update profile with avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: filePath })
+        .eq('id', user?.id);
         
-      if (rpcError) {
-        console.error('Error updating profile with avatar URL:', rpcError);
+      if (updateError) {
+        console.error('Error updating profile with avatar URL:', updateError);
       }
       
       setAvatarUrl(publicUrl.publicUrl);
