@@ -2,9 +2,6 @@
 project_id = "tfyybwoxraxvpkjbwyyq"
 
 [api]
-enabled = true
-
-[api.serve]
 port = 54321
 hostname = "127.0.0.1"
 
@@ -18,15 +15,6 @@ port = 54323
 
 [inbucket]
 port = 54324
-
-[storage]
-port = 54325
-
-[auth]
-port = 54326
-
-[realtime]
-port = 54327
 
 [functions]
 [functions.add-avatar-url-column]

@@ -42,32 +42,10 @@ const ProfileSettingsForm: React.FC = () => {
       try {
         setIsLoading(true);
         
-        // Check if avatar_url column exists
-        let hasAvatarUrlColumn = true;
-        try {
-          const { data: columnCheck, error: columnError } = await supabase
-            .from('profiles')
-            .select('avatar_url')
-            .limit(1)
-            .single();
-          
-          if (columnError && columnError.message.includes("column 'avatar_url' does not exist")) {
-            hasAvatarUrlColumn = false;
-            console.log('Avatar URL column does not exist');
-          }
-        } catch (error) {
-          console.log('Error checking avatar_url column:', error);
-          hasAvatarUrlColumn = false;
-        }
-        
-        // Fetch profile data
-        const selectString = hasAvatarUrlColumn 
-          ? 'full_name, phone, email, avatar_url' 
-          : 'full_name, phone, email';
-          
+        // We'll try to get the profile data, but be prepared for the avatar_url column to not exist
         const { data, error } = await supabase
           .from('profiles')
-          .select(selectString)
+          .select('full_name, phone, email')
           .eq('id', user.id)
           .single();
         
@@ -76,16 +54,37 @@ const ProfileSettingsForm: React.FC = () => {
           return;
         }
         
+        // Check if avatar_url column exists and try to get it separately
+        let avatarUrlValue = null;
+        try {
+          const { data: avatarData, error: avatarError } = await supabase
+            .from('profiles')
+            .select('avatar_url')
+            .eq('id', user.id)
+            .single();
+          
+          if (!avatarError && avatarData && avatarData.avatar_url) {
+            avatarUrlValue = avatarData.avatar_url;
+          }
+        } catch (avatarError) {
+          console.log('Avatar URL might not exist in schema:', avatarError);
+        }
+        
+        const profileInfo = {
+          ...data,
+          avatar_url: avatarUrlValue
+        };
+        
         if (data) {
-          setProfileData(data);
+          setProfileData(profileInfo);
           setValue('full_name', data.full_name || '');
           setValue('phone', data.phone || '');
           setValue('email', data.email || user.email || '');
           
-          if (hasAvatarUrlColumn && data.avatar_url) {
-            setAvatarUrl(data.avatar_url);
+          if (avatarUrlValue) {
+            setAvatarUrl(avatarUrlValue);
             // Try to download and display the avatar
-            downloadAvatar(data.avatar_url);
+            downloadAvatar(avatarUrlValue);
           }
         }
       } catch (error) {
@@ -154,34 +153,34 @@ const ProfileSettingsForm: React.FC = () => {
         .from('avatars')
         .getPublicUrl(filePath);
       
-      // Check if avatar_url column exists before updating it
-      let hasAvatarUrlColumn = true;
+      // Now update the profile with the avatar URL
+      // First check if avatar_url column exists
       try {
-        const { data: columnCheck, error: columnError } = await supabase
-          .from('profiles')
-          .select('avatar_url')
-          .limit(1)
-          .single();
+        const { error: updateError } = await supabase.rpc('alter_profiles_add_avatar_url_if_not_exists');
         
-        if (columnError && columnError.message.includes("column 'avatar_url' does not exist")) {
-          hasAvatarUrlColumn = false;
-          console.log('Avatar URL column does not exist, not updating avatar_url');
+        if (updateError) {
+          console.log('Error adding avatar_url column:', updateError);
         }
-      } catch (error) {
-        console.log('Error checking avatar_url column:', error);
-        hasAvatarUrlColumn = false;
-      }
-      
-      if (hasAvatarUrlColumn) {
-        // Now update the profile with the avatar URL
-        const { error: updateError } = await supabase
+        
+        // Now try to update the profile
+        const { error: updateProfileError } = await supabase
           .from('profiles')
           .update({ 
+            full_name: profileData?.full_name,
+            phone: profileData?.phone,
             avatar_url: filePath 
           })
           .eq('id', user?.id);
-        
-        if (updateError) throw updateError;
+          
+        if (updateProfileError) {
+          if (updateProfileError.message.includes('does not exist')) {
+            console.log('The avatar_url column is not available. Continue without updating it.');
+          } else {
+            throw updateProfileError;
+          }
+        }
+      } catch (error) {
+        console.error('Error updating profile with avatar URL:', error);
       }
       
       setAvatarUrl(publicUrl.publicUrl);
@@ -208,35 +207,12 @@ const ProfileSettingsForm: React.FC = () => {
     try {
       setIsSubmitting(true);
       
-      // Check if avatar_url column exists
-      let updateData: any = {
+      // Create update data without avatar_url
+      const updateData = {
         full_name: data.full_name,
         phone: data.phone,
         updated_at: new Date().toISOString()
       };
-      
-      // Separate avatar_url handling if the column exists
-      let hasAvatarUrlColumn = true;
-      try {
-        const { data: columnCheck, error: columnError } = await supabase
-          .from('profiles')
-          .select('avatar_url')
-          .limit(1)
-          .single();
-        
-        if (columnError && columnError.message.includes("column 'avatar_url' does not exist")) {
-          hasAvatarUrlColumn = false;
-          console.log('Avatar URL column does not exist, not including in update');
-        }
-      } catch (error) {
-        console.log('Error checking avatar_url column:', error);
-        hasAvatarUrlColumn = false;
-      }
-      
-      // If avatar_url column exists and we have a profile with avatar_url, include it in the update
-      if (hasAvatarUrlColumn && profileData && profileData.avatar_url) {
-        updateData.avatar_url = profileData.avatar_url;
-      }
       
       const { error } = await supabase
         .from('profiles')

@@ -1,6 +1,6 @@
 
 import { jsPDF } from "jspdf";
-import autoTable, { UserOptions } from "jspdf-autotable";
+import { UserOptions } from "jspdf-autotable";
 import { Customer, CustomerProduct, Product, ServiceOrder } from "@/types/supabase";
 
 // Define PubSub interface

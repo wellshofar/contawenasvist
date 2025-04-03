@@ -1,87 +1,107 @@
 
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
-
-interface WebhookPayload {
-  type: string;
-  table: string;
-  record: {
-    [key: string]: any;
-  };
-  schema: string;
-  old_record: null | {
-    [key: string]: any;
-  };
-}
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Create a Supabase client with the service role key
+    // Create a Supabase client with the Auth context of the logged-in user.
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    // SQL to add the avatar_url column if it doesn't exist
-    const { error } = await supabaseClient.rpc(
-      'execute_sql',
+      // Supabase API URL - env var exported by default.
+      Deno.env.get("SUPABASE_URL") ?? "",
+      // Supabase API ANON KEY - env var exported by default.
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      // Create client with Auth context of the user that called the function.
+      // This way your row-level-security (RLS) policies are applied.
       {
-        sql: `
-        DO $$
-        BEGIN
-          -- Check if avatar_url column exists in profiles table
-          IF NOT EXISTS (
-            SELECT 1
-            FROM information_schema.columns
-            WHERE table_name = 'profiles'
-            AND column_name = 'avatar_url'
-          ) THEN
-            -- Add the avatar_url column if it doesn't exist
-            ALTER TABLE public.profiles ADD COLUMN avatar_url TEXT;
-            RAISE NOTICE 'Added avatar_url column to profiles table';
-          ELSE
-            RAISE NOTICE 'avatar_url column already exists in profiles table';
-          END IF;
-        END $$;
-        `
+        global: {
+          headers: { Authorization: req.headers.get("Authorization")! },
+        },
       }
     );
 
-    if (error) {
-      console.error('Error adding avatar_url column:', error);
-      return new Response(
-        JSON.stringify({ success: false, error: error.message }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400,
+    // Check if avatar_url column exists in profiles table
+    const { data: columns, error: columnsError } = await supabaseClient
+      .from("profiles")
+      .select("avatar_url")
+      .limit(1);
+
+    // If column doesn't exist (we get an error indicating it doesn't exist)
+    if (columnsError && columnsError.message.includes("column profiles.avatar_url does not exist")) {
+      // Execute SQL function to add the column
+      const sql = `
+        ALTER TABLE public.profiles 
+        ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+      `;
+      
+      // Using RPC is safer than executing direct SQL
+      try {
+        // Execute the SQL query directly (required for ALTER TABLE)
+        const { error: alterTableError } = await supabaseClient.rpc(
+          "execute_sql",
+          { sql_query: sql }
+        );
+        
+        if (alterTableError) {
+          console.error("Error executing SQL:", alterTableError);
+          return new Response(
+            JSON.stringify({ 
+              error: "Failed to add avatar_url column", 
+              details: alterTableError 
+            }),
+            { 
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 500 
+            }
+          );
         }
-      );
+        
+        return new Response(
+          JSON.stringify({ message: "Avatar URL column added successfully" }),
+          { 
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200 
+          }
+        );
+      } catch (execError) {
+        console.error("Error in execute_sql function:", execError);
+        return new Response(
+          JSON.stringify({ 
+            error: "Failed to execute SQL", 
+            details: execError 
+          }),
+          { 
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 500 
+          }
+        );
+      }
     }
 
+    // Column exists, return success
     return new Response(
-      JSON.stringify({ success: true, message: 'Avatar URL column check completed' }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
+      JSON.stringify({ message: "Avatar URL column already exists" }),
+      { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200 
       }
     );
+
   } catch (error) {
-    console.error('Unexpected error:', error);
     return new Response(
-      JSON.stringify({ success: false, error: 'Unexpected error occurred' }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+      JSON.stringify({ error: error.message }),
+      { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500 
       }
     );
   }
