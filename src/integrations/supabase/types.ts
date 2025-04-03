@@ -140,6 +140,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           email: string
           full_name: string | null
@@ -149,6 +150,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           email: string
           full_name?: string | null
@@ -158,6 +160,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
@@ -278,11 +281,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_profile_avatar_url: {
+        Args: {
+          user_id: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           role: Database["public"]["Enums"]["user_role"]
         }
         Returns: boolean
+      }
+      update_profile_avatar_url: {
+        Args: {
+          user_id: string
+          avatar_url_value: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

@@ -17,11 +17,11 @@ const ProfileSettingsForm: React.FC = () => {
     updateProfile 
   } = useProfileData();
 
-  const handleSubmit = async (data: ProfileFormData) => {
+  const handleSubmit = async (data: ProfileFormData): Promise<boolean> => {
     setIsSubmitting(true);
-    await updateProfile(data);
+    const result = await updateProfile(data);
     setIsSubmitting(false);
-    return true; // Return true to match the expected return type
+    return result;
   };
 
   if (isLoading) {

@@ -1,6 +1,5 @@
 
 import React from "react";
-import { SignatureFieldProps } from "./types";
 
 const SignatureFields: React.FC = () => {
   return (

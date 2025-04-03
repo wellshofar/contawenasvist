@@ -8,7 +8,7 @@ declare module 'jspdf' {
     autoTable: (options: any) => jsPDF;
     previousAutoTable: any;
     lastAutoTable: any;
-    internal: any;
+    internal: any; // Using any to avoid conflict with internal type in the lib
     getNumberOfPages: () => number;
   }
 }
@@ -32,6 +32,8 @@ export interface CustomerInfoProps {
     state: string;
     document: string;
     postal_code: string;
+    email?: string;
+    phone?: string;
   };
 }
 
@@ -63,8 +65,8 @@ export interface OrdemServicoViewProps {
     status: string;
     assigned_to: string | null;
     created_by: string | null;
-    customer_id?: string;
-    customer_product_id?: string | null;
+    customer_id: string;
+    customer_product_id: string | null;
     description?: string | null;
     completed_date?: string | null;
     updated_at?: string;
@@ -76,6 +78,10 @@ export interface OrdemServicoViewProps {
     state: string;
     document: string;
     postal_code: string;
+    email?: string | null;
+    phone?: string | null;
+    created_at: string;
+    updated_at: string;
   };
   product: {
     name: string;
@@ -84,8 +90,8 @@ export interface OrdemServicoViewProps {
   customerProduct: {
     id: string;
     installation_date: string | null;
-    customer_id?: string;
-    product_id?: string;
+    customer_id: string;
+    product_id: string;
     next_maintenance_date?: string | null;
     notes?: string | null;
     created_at?: string;
