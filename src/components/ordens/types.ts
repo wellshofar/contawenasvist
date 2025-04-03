@@ -1,125 +1,72 @@
 
-import { jsPDF } from "jspdf";
-import { UserOptions } from "jspdf-autotable";
-import { Customer, CustomerProduct, Product, ServiceOrder } from "@/types/supabase";
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
-// Define PubSub interface
-export interface PubSub {
-  publish: (eventName: string, ...args: any[]) => void;
-  subscribe: (eventName: string, callback: Function) => void;
-  unsubscribe: (eventName: string, callback: Function) => void;
-}
-
-// Extend the jsPDF type with the methods we need
-declare module "jspdf" {
+// Extending the jsPDF type to include jspdf-autotable functionality
+declare module 'jspdf' {
   interface jsPDF {
-    internal: {
-      events: PubSub;
-      scaleFactor: number;
-      pageSize: {
-        width: number;
-        getWidth: () => number;
-        height: number;
-        getHeight: () => number;
-      };
-      pages: number[];
-      getEncryptor(objectId: number): (data: string) => string;
-      getNumberOfPages(): number;
-    };
-    previousAutoTable?: {
-      finalY?: number;
-    };
-    autoTable: (options: UserOptions) => jsPDF;
+    autoTable: (options: any) => jsPDF;
+    previousAutoTable: any;
+    lastAutoTable: any;
+    getNumberOfPages: () => number;
   }
 }
 
-export interface OrdemServicoData {
+// Export necessary types that are used by other components
+export interface ServiceItem {
   id: string;
-  title: string;
-  description?: string;
-  customer: {
-    name: string;
-    phone?: string;
-    email?: string;
-    address?: string;
-    document?: string;
-  };
-  product?: {
-    name: string;
-    model?: string;
-  };
-  serviceItems: {
-    description: string;
-    quantity: number;
-    value: number;
-  }[];
-  subtotal: number;
-  discount?: number;
-  total: number;
-  createdAt: string;
-  status: string;
-  technician?: {
-    name: string;
-  };
-  notes?: string;
-  signatures?: {
-    client?: string;
-    technician?: string;
-  };
-}
-
-export interface PdfOptions {
-  showHeader?: boolean;
-  showFooter?: boolean;
-  showSignatures?: boolean;
-  showNotes?: boolean;
-}
-
-// Component interfaces
-export interface OrdemServicoViewProps {
-  order: ServiceOrder;
-  customer: Customer;
-  customerProduct: CustomerProduct;
-  product: Product;
-  serviceItems: ServiceItem[];
-  onBack: () => void;
-}
-
-export interface OrderHeaderProps {
-  order: ServiceOrder;
-  handlePrint: () => void;
-  handleDownloadPDF: () => void;
-  onBack: () => void;
+  description: string;
+  quantity: number;
+  price: number;
 }
 
 export interface CustomerInfoProps {
-  customer: Customer;
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
 }
 
 export interface ProductInfoProps {
-  product: Product;
-  customerProduct: CustomerProduct;
+  name: string;
+  model: string;
 }
 
-export interface ServiceItem {
-  id: string;
-  productId: string;
-  code: string;
-  name: string;
-  quantity: number;
+export interface OrderHeaderProps {
+  orderNumber: string;
+  date: string;
+  printMode?: boolean;
+}
+
+export interface OrdemServicoViewProps {
+  orderData: {
+    id: string;
+    number: string;
+    date: string;
+    customer: CustomerInfoProps;
+    product: ProductInfoProps;
+    items: ServiceItem[];
+    technicalReport: string;
+    customerSignature: string | null;
+    technicianSignature: string | null;
+  };
+  printMode?: boolean;
 }
 
 export interface ServiceItemsProps {
-  serviceItems: ServiceItem[];
+  items: ServiceItem[];
 }
 
 export interface SignatureFieldProps {
-  // Add properties as needed
+  title: string;
+  signature: string | null;
+  onSign?: () => void;
 }
 
-// Helper function to format dates
-export const formatDate = (dateString: string | null): string => {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+// Helper function to format dates consistently
+export const formatDate = (date: string | Date): string => {
+  if (!date) return '';
+  
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleDateString('pt-BR');
 };
