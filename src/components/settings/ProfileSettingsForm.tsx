@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -16,12 +17,12 @@ interface ProfileFormData {
   email: string;
 }
 
-interface ProfileData {
-  full_name?: string;
-  phone?: string;
-  email?: string;
-  avatar_url?: string;
-}
+type ProfileData = {
+  full_name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  avatar_url?: string | null;
+} | null;
 
 const ProfileSettingsForm: React.FC = () => {
   const { user, profile } = useAuth();
@@ -29,6 +30,7 @@ const ProfileSettingsForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [profileData, setProfileData] = useState<ProfileData>(null);
   
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<ProfileFormData>();
 
@@ -40,16 +42,32 @@ const ProfileSettingsForm: React.FC = () => {
       try {
         setIsLoading(true);
         
-        // Add the avatar_url column if it doesn't exist
+        // Check if avatar_url column exists
+        let hasAvatarUrlColumn = true;
         try {
-          await supabase.rpc('add_avatar_url_if_not_exists');
+          const { data: columnCheck, error: columnError } = await supabase
+            .from('profiles')
+            .select('avatar_url')
+            .limit(1)
+            .single();
+          
+          if (columnError && columnError.message.includes("column 'avatar_url' does not exist")) {
+            hasAvatarUrlColumn = false;
+            console.log('Avatar URL column does not exist');
+          }
         } catch (error) {
-          console.log('Avatar URL column might already exist or unable to add it');
+          console.log('Error checking avatar_url column:', error);
+          hasAvatarUrlColumn = false;
         }
         
+        // Fetch profile data
+        const selectString = hasAvatarUrlColumn 
+          ? 'full_name, phone, email, avatar_url' 
+          : 'full_name, phone, email';
+          
         const { data, error } = await supabase
           .from('profiles')
-          .select('full_name, phone, email, avatar_url')
+          .select(selectString)
           .eq('id', user.id)
           .single();
         
@@ -59,10 +77,12 @@ const ProfileSettingsForm: React.FC = () => {
         }
         
         if (data) {
+          setProfileData(data);
           setValue('full_name', data.full_name || '');
           setValue('phone', data.phone || '');
           setValue('email', data.email || user.email || '');
-          if (data.avatar_url) {
+          
+          if (hasAvatarUrlColumn && data.avatar_url) {
             setAvatarUrl(data.avatar_url);
             // Try to download and display the avatar
             downloadAvatar(data.avatar_url);
@@ -134,18 +154,35 @@ const ProfileSettingsForm: React.FC = () => {
         .from('avatars')
         .getPublicUrl(filePath);
       
-      // Update user profile with the avatar URL
-      await supabase.rpc('add_avatar_url_if_not_exists');
+      // Check if avatar_url column exists before updating it
+      let hasAvatarUrlColumn = true;
+      try {
+        const { data: columnCheck, error: columnError } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .limit(1)
+          .single();
+        
+        if (columnError && columnError.message.includes("column 'avatar_url' does not exist")) {
+          hasAvatarUrlColumn = false;
+          console.log('Avatar URL column does not exist, not updating avatar_url');
+        }
+      } catch (error) {
+        console.log('Error checking avatar_url column:', error);
+        hasAvatarUrlColumn = false;
+      }
       
-      // Now update the profile with the avatar URL
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ 
-          avatar_url: filePath 
-        })
-        .eq('id', user?.id);
-      
-      if (updateError) throw updateError;
+      if (hasAvatarUrlColumn) {
+        // Now update the profile with the avatar URL
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ 
+            avatar_url: filePath 
+          })
+          .eq('id', user?.id);
+        
+        if (updateError) throw updateError;
+      }
       
       setAvatarUrl(publicUrl.publicUrl);
       
@@ -171,16 +208,39 @@ const ProfileSettingsForm: React.FC = () => {
     try {
       setIsSubmitting(true);
       
-      // Make sure the avatar_url column exists
-      await supabase.rpc('add_avatar_url_if_not_exists');
+      // Check if avatar_url column exists
+      let updateData: any = {
+        full_name: data.full_name,
+        phone: data.phone,
+        updated_at: new Date().toISOString()
+      };
+      
+      // Separate avatar_url handling if the column exists
+      let hasAvatarUrlColumn = true;
+      try {
+        const { data: columnCheck, error: columnError } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .limit(1)
+          .single();
+        
+        if (columnError && columnError.message.includes("column 'avatar_url' does not exist")) {
+          hasAvatarUrlColumn = false;
+          console.log('Avatar URL column does not exist, not including in update');
+        }
+      } catch (error) {
+        console.log('Error checking avatar_url column:', error);
+        hasAvatarUrlColumn = false;
+      }
+      
+      // If avatar_url column exists and we have a profile with avatar_url, include it in the update
+      if (hasAvatarUrlColumn && profileData && profileData.avatar_url) {
+        updateData.avatar_url = profileData.avatar_url;
+      }
       
       const { error } = await supabase
         .from('profiles')
-        .update({
-          full_name: data.full_name,
-          phone: data.phone,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', user.id);
       
       if (error) throw error;

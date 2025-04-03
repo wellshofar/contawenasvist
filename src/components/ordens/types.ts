@@ -10,7 +10,7 @@ export interface PubSub {
   unsubscribe: (eventName: string, callback: Function) => void;
 }
 
-// Extend the internal property of jsPDF to include getNumberOfPages and previousAutoTable
+// Extend the jsPDF type with the methods we need
 declare module "jspdf" {
   interface jsPDF {
     internal: {

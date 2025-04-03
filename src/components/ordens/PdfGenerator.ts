@@ -46,7 +46,10 @@ export const generateServiceOrderPDF = (
     ],
   });
   
-  let finalY = (doc.previousAutoTable?.finalY !== undefined) ? doc.previousAutoTable.finalY : 75;
+  let finalY = 75;
+  if (doc.previousAutoTable && typeof doc.previousAutoTable.finalY !== 'undefined') {
+    finalY = doc.previousAutoTable.finalY;
+  }
   
   autoTable(doc, {
     startY: finalY + 10,
@@ -61,7 +64,11 @@ export const generateServiceOrderPDF = (
   });
   
   // Add product information
-  finalY = (doc.previousAutoTable?.finalY !== undefined) ? doc.previousAutoTable.finalY : finalY + 10;
+  finalY = 75;
+  if (doc.previousAutoTable && typeof doc.previousAutoTable.finalY !== 'undefined') {
+    finalY = doc.previousAutoTable.finalY;
+  }
+  
   doc.setFontSize(14);
   doc.text("Produto", 15, finalY + 20);
   
@@ -79,7 +86,11 @@ export const generateServiceOrderPDF = (
   });
   
   // Add service items
-  finalY = (doc.previousAutoTable?.finalY !== undefined) ? doc.previousAutoTable.finalY : finalY + 25;
+  finalY = 75;
+  if (doc.previousAutoTable && typeof doc.previousAutoTable.finalY !== 'undefined') {
+    finalY = doc.previousAutoTable.finalY;
+  }
+  
   doc.setFontSize(14);
   doc.text("Peças/Serviços", 15, finalY + 20);
   
@@ -100,7 +111,11 @@ export const generateServiceOrderPDF = (
   });
   
   // Add signature fields
-  finalY = (doc.previousAutoTable?.finalY !== undefined) ? doc.previousAutoTable.finalY : finalY + 25;
+  finalY = 75;
+  if (doc.previousAutoTable && typeof doc.previousAutoTable.finalY !== 'undefined') {
+    finalY = doc.previousAutoTable.finalY;
+  }
+  
   doc.setFontSize(12);
   doc.text("Assinatura do Técnico: _______________________________", 15, finalY + 30);
   doc.text("Assinatura do Cliente: _______________________________", 15, finalY + 45);
