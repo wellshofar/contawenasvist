@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -15,6 +14,13 @@ interface ProfileFormData {
   full_name: string;
   phone: string;
   email: string;
+}
+
+interface ProfileData {
+  full_name?: string;
+  phone?: string;
+  email?: string;
+  avatar_url?: string;
 }
 
 const ProfileSettingsForm: React.FC = () => {
@@ -34,13 +40,23 @@ const ProfileSettingsForm: React.FC = () => {
       try {
         setIsLoading(true);
         
+        // Add the avatar_url column if it doesn't exist
+        try {
+          await supabase.rpc('add_avatar_url_if_not_exists');
+        } catch (error) {
+          console.log('Avatar URL column might already exist or unable to add it');
+        }
+        
         const { data, error } = await supabase
           .from('profiles')
           .select('full_name, phone, email, avatar_url')
           .eq('id', user.id)
           .single();
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
         
         if (data) {
           setValue('full_name', data.full_name || '');
@@ -119,10 +135,13 @@ const ProfileSettingsForm: React.FC = () => {
         .getPublicUrl(filePath);
       
       // Update user profile with the avatar URL
+      await supabase.rpc('add_avatar_url_if_not_exists');
+      
+      // Now update the profile with the avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
-          avatar_url: filePath
+          avatar_url: filePath 
         })
         .eq('id', user?.id);
       
@@ -151,6 +170,9 @@ const ProfileSettingsForm: React.FC = () => {
     
     try {
       setIsSubmitting(true);
+      
+      // Make sure the avatar_url column exists
+      await supabase.rpc('add_avatar_url_if_not_exists');
       
       const { error } = await supabase
         .from('profiles')

@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, User, Shield, Building, Webhook } from "lucide-react";
 import UserSettingsForm from "@/components/settings/UserSettingsForm";
@@ -9,10 +8,16 @@ import SecuritySettingsForm from "@/components/settings/SecuritySettingsForm";
 import IntegrationsSettingsForm from "@/components/settings/IntegrationsSettingsForm";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { setupDatabase } from "@/utils/database";
 
 const Configuracoes: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
+  
+  useEffect(() => {
+    // Set up the database to ensure avatar_url column exists
+    setupDatabase().catch(console.error);
+  }, []);
 
   return (
     <SettingsProvider>

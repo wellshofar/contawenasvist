@@ -1,9 +1,16 @@
 
 import { jsPDF } from "jspdf";
-import { TableProps } from "jspdf-autotable";
-import { PubSub } from "@/types/supabase";
+import autoTable, { UserOptions } from "jspdf-autotable";
+import { Customer, CustomerProduct, Product, ServiceOrder } from "@/types/supabase";
 
-// Extend the internal property of jsPDF to include getNumberOfPages
+// Define PubSub interface
+export interface PubSub {
+  publish: (eventName: string, ...args: any[]) => void;
+  subscribe: (eventName: string, callback: Function) => void;
+  unsubscribe: (eventName: string, callback: Function) => void;
+}
+
+// Extend the internal property of jsPDF to include getNumberOfPages and previousAutoTable
 declare module "jspdf" {
   interface jsPDF {
     internal: {
@@ -19,7 +26,10 @@ declare module "jspdf" {
       getEncryptor(objectId: number): (data: string) => string;
       getNumberOfPages(): number;
     };
-    autoTable: (options: TableProps) => jsPDF;
+    previousAutoTable?: {
+      finalY?: number;
+    };
+    autoTable: (options: UserOptions) => jsPDF;
   }
 }
 
@@ -64,3 +74,52 @@ export interface PdfOptions {
   showSignatures?: boolean;
   showNotes?: boolean;
 }
+
+// Component interfaces
+export interface OrdemServicoViewProps {
+  order: ServiceOrder;
+  customer: Customer;
+  customerProduct: CustomerProduct;
+  product: Product;
+  serviceItems: ServiceItem[];
+  onBack: () => void;
+}
+
+export interface OrderHeaderProps {
+  order: ServiceOrder;
+  handlePrint: () => void;
+  handleDownloadPDF: () => void;
+  onBack: () => void;
+}
+
+export interface CustomerInfoProps {
+  customer: Customer;
+}
+
+export interface ProductInfoProps {
+  product: Product;
+  customerProduct: CustomerProduct;
+}
+
+export interface ServiceItem {
+  id: string;
+  productId: string;
+  code: string;
+  name: string;
+  quantity: number;
+}
+
+export interface ServiceItemsProps {
+  serviceItems: ServiceItem[];
+}
+
+export interface SignatureFieldProps {
+  // Add properties as needed
+}
+
+// Helper function to format dates
+export const formatDate = (dateString: string | null): string => {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  return `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+};
