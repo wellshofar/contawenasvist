@@ -43,18 +43,14 @@ const Configuracoes: React.FC = () => {
               <Settings className="h-4 w-4" />
               <span className="hidden md:inline">Preferências</span>
             </TabsTrigger>
-            {isAdmin && (
-              <>
-                <TabsTrigger value="company" className="flex items-center gap-2">
-                  <Building className="h-4 w-4" />
-                  <span className="hidden md:inline">Empresa</span>
-                </TabsTrigger>
-                <TabsTrigger value="integrations" className="flex items-center gap-2">
-                  <Webhook className="h-4 w-4" />
-                  <span className="hidden md:inline">Integrações</span>
-                </TabsTrigger>
-              </>
-            )}
+            <TabsTrigger value="company" className="flex items-center gap-2">
+              <Building className="h-4 w-4" />
+              <span className="hidden md:inline">Empresa</span>
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="flex items-center gap-2">
+              <Webhook className="h-4 w-4" />
+              <span className="hidden md:inline">Integrações</span>
+            </TabsTrigger>
           </TabsList>
 
           <div className="mt-4">
@@ -73,19 +69,15 @@ const Configuracoes: React.FC = () => {
               <UserSettingsForm />
             </TabsContent>
 
-            {isAdmin && (
-              <>
-                <TabsContent value="company" className="space-y-6">
-                  <h2 className="text-2xl font-semibold mb-4">Dados da Empresa</h2>
-                  <SystemSettingsForm />
-                </TabsContent>
-                
-                <TabsContent value="integrations" className="space-y-6">
-                  <h2 className="text-2xl font-semibold mb-4">Integrações Externas</h2>
-                  <IntegrationsSettingsForm />
-                </TabsContent>
-              </>
-            )}
+            <TabsContent value="company" className="space-y-6">
+              <h2 className="text-2xl font-semibold mb-4">Dados da Empresa</h2>
+              <SystemSettingsForm />
+            </TabsContent>
+            
+            <TabsContent value="integrations" className="space-y-6">
+              <h2 className="text-2xl font-semibold mb-4">Integrações Externas</h2>
+              <IntegrationsSettingsForm />
+            </TabsContent>
           </div>
         </Tabs>
       </div>
