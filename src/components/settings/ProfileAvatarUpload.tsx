@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -62,13 +62,10 @@ const ProfileAvatarUpload: React.FC<ProfileAvatarUploadProps> = ({
       setAvatarUrl(newAvatarUrl);
       
       // Update the user's avatar URL in the database using the RPC function
-      const { error: updateError } = await supabase.rpc(
-        'update_profile_avatar_url',
-        { 
-          user_id: profile.id, 
-          avatar_url_value: newAvatarUrl 
-        }
-      );
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: newAvatarUrl })
+        .eq('id', profile.id);
       
       if (updateError) {
         throw updateError;
@@ -112,13 +109,10 @@ const ProfileAvatarUpload: React.FC<ProfileAvatarUploadProps> = ({
       }
       
       // Update the user's avatar URL in the database
-      const { error: updateError } = await supabase.rpc(
-        'update_profile_avatar_url',
-        { 
-          user_id: profile.id, 
-          avatar_url_value: null 
-        }
-      );
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('id', profile.id);
       
       if (updateError) {
         throw updateError;

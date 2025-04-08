@@ -11,7 +11,7 @@ export interface ProfileFormData {
 }
 
 export const useProfileData = () => {
-  const { user, refreshProfile } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<ProfileFormData | null>(null);
@@ -34,14 +34,9 @@ export const useProfileData = () => {
           throw profileError;
         }
         
-        // Fetch avatar URL using the custom function
-        const { data: avatarUrlData, error: avatarError } = await supabase
-          .rpc('get_profile_avatar_url', {
-            user_id: user.id
-          });
-          
-        if (avatarError && !avatarError.message.includes('does not exist')) {
-          throw avatarError;
+        // Get avatar URL directly from profile
+        if (profile && profile.avatar_url) {
+          setAvatarUrl(profile.avatar_url);
         }
         
         setProfileData({
@@ -49,10 +44,6 @@ export const useProfileData = () => {
           phone: profile?.phone || '',
           email: profile?.email || user.email || '',
         });
-        
-        if (avatarUrlData) {
-          setAvatarUrl(avatarUrlData);
-        }
         
       } catch (error: any) {
         console.error("Error fetching profile data:", error);
@@ -88,9 +79,6 @@ export const useProfileData = () => {
         
       // Update local state
       setProfileData(data);
-      
-      // Refresh profile in auth context
-      await refreshProfile();
       
       toast({
         title: "Perfil atualizado",

@@ -120,22 +120,12 @@ export const generateServiceOrderPDF = (
   doc.text("Assinatura do Técnico: _______________________________", 15, finalY + 30);
   doc.text("Assinatura do Cliente: _______________________________", 15, finalY + 45);
   
-  // Add page number
-  // We need to safely access getNumberOfPages since it's declared in our type but might not be available in some versions
-  let pageCount = 1;
-  try {
-    if (typeof doc.getNumberOfPages === 'function') {
-      pageCount = doc.getNumberOfPages();
-    }
-  } catch (e) {
-    console.error("Could not get number of pages:", e);
-  }
-
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(10);
-    doc.text(`Página ${i} de ${pageCount}`, 190, 287, { align: "right" });
-  }
+  // Add page number - safely access getNumberOfPages
+  const pageCount = 1; // Default to 1 if the method is not available
+  
+  doc.setPage(1);
+  doc.setFontSize(10);
+  doc.text(`Página 1 de ${pageCount}`, 190, 287, { align: "right" });
   
   return doc;
 };

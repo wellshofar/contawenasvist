@@ -39,7 +39,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
       completed_date: order.completed_date || null,
       assigned_to: order.assigned_to,
       created_at: order.created_at,
-      updated_at: order.updated_at || order.created_at,
+      updated_at: order.updated_at,
       created_by: order.created_by
     };
 
@@ -64,11 +64,11 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
       customer_id: customerProduct.customer_id,
       product_id: customerProduct.product_id,
       installation_date: customerProduct.installation_date,
-      next_maintenance_date: customerProduct.next_maintenance_date || null,
-      notes: customerProduct.notes || null,
-      created_at: customerProduct.created_at || new Date().toISOString(),
-      updated_at: customerProduct.updated_at || new Date().toISOString(),
-      created_by: customerProduct.created_by || null
+      next_maintenance_date: customerProduct.next_maintenance_date,
+      notes: customerProduct.notes,
+      created_at: customerProduct.created_at,
+      updated_at: customerProduct.updated_at,
+      created_by: customerProduct.created_by
     };
 
     const completeProduct: Product = {
