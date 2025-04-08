@@ -1,78 +1,52 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from "@/hooks/use-toast";
-import { CardDescription } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
-import AuthLayout from '@/components/auth/AuthLayout';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import LoginForm from '@/components/auth/LoginForm';
 import RegisterForm from '@/components/auth/RegisterForm';
-import AuthLoader from '@/components/auth/AuthLoader';
 
-const Auth: React.FC = () => {
-  const { signIn, signUp, user, loading } = useAuth();
-  const [isLoggingIn, setIsLoggingIn] = useState(true);
-  const [adminExists, setAdminExists] = useState(false);
+interface AuthProps {
+  defaultTab?: 'login' | 'register';
+}
 
-  useEffect(() => {
-    const checkAdmin = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('role', 'admin')
-          .limit(1);
-          
-        if (error) throw error;
-        
-        setAdminExists(data && data.length > 0);
-      } catch (e) {
-        console.error('Error checking for admin:', e);
-      }
-    };
-    
-    checkAdmin();
-  }, []);
-
-  // If loading, show spinner
-  if (loading) {
-    return <AuthLoader />;
-  }
+const Auth: React.FC<AuthProps> = ({ defaultTab = 'login' }) => {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<string>(defaultTab);
 
   // If user is already logged in, redirect to dashboard
   if (user) {
     return <Navigate to="/" replace />;
   }
 
-  const loginContent = (
-    <>
-      <CardDescription className="text-center pb-4">
-        Entre com suas credenciais para acessar o sistema
-      </CardDescription>
-      <LoginForm onLogin={signIn} />
-    </>
-  );
-
-  const registerContent = (
-    <>
-      <CardDescription className="text-center pb-4">
-        Crie uma nova conta para acessar o sistema
-      </CardDescription>
-      <RegisterForm onRegister={signUp} adminExists={adminExists} />
-    </>
-  );
-
   return (
-    <AuthLayout 
-      loginContent={loginContent}
-      registerContent={registerContent}
-      defaultTab={isLoggingIn ? 'login' : 'register'}
-      onTabChange={(value) => setIsLoggingIn(value === 'login')}
-    >
-      {/* Este children está vazio mas é necessário para satisfazer o TypeScript */}
-      <></>
-    </AuthLayout>
+    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+      <div className="w-full max-w-md">
+        <Card className="border-none shadow-lg">
+          <CardHeader className="space-y-1 text-center">
+            <CardTitle className="text-2xl font-bold">HOKEN SERVICE</CardTitle>
+            <p className="text-muted-foreground text-sm">
+              {activeTab === 'login' ? 'Entre com sua conta' : 'Crie sua conta'}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="register">Registro</TabsTrigger>
+              </TabsList>
+              <TabsContent value="login">
+                <LoginForm />
+              </TabsContent>
+              <TabsContent value="register">
+                <RegisterForm />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 
