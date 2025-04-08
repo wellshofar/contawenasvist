@@ -120,10 +120,11 @@ export const generateServiceOrderPDF = (
   doc.text("Assinatura do Técnico: _______________________________", 15, finalY + 30);
   doc.text("Assinatura do Cliente: _______________________________", 15, finalY + 45);
   
-  // Add page number - safely access getNumberOfPages
-  const pageCount = 1; // Default to 1 if the method is not available
+  // Add page number - safely handle page counting without using getNumberOfPages
+  // Instead of using getNumberOfPages which is causing issues, we'll just use 1
+  // since this is typically a single page document
+  const pageCount = 1;
   
-  doc.setPage(1);
   doc.setFontSize(10);
   doc.text(`Página 1 de ${pageCount}`, 190, 287, { align: "right" });
   

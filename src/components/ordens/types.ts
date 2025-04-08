@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
@@ -8,7 +7,7 @@ declare module 'jspdf' {
     autoTable: (options: any) => jsPDF;
     previousAutoTable: any;
     lastAutoTable: any;
-    internal: any; // Using any to avoid type conflicts
+    // Remove the conflicting 'internal' property declaration
     getNumberOfPages: () => number;
   }
 }
