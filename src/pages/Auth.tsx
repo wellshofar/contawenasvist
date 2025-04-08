@@ -1,19 +1,45 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import LoginForm from '@/components/auth/LoginForm';
 import RegisterForm from '@/components/auth/RegisterForm';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthProps {
   defaultTab?: 'login' | 'register';
 }
 
 const Auth: React.FC<AuthProps> = ({ defaultTab = 'login' }) => {
-  const { user } = useAuth();
+  const { user, signIn, signUp } = useAuth();
   const [activeTab, setActiveTab] = useState<string>(defaultTab);
+  const [adminExists, setAdminExists] = useState<boolean>(true);
+
+  // Check if an admin user already exists in the system
+  useEffect(() => {
+    const checkIfAdminExists = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'admin')
+          .limit(1);
+          
+        if (error) {
+          console.error('Error checking for admin:', error);
+          return;
+        }
+        
+        setAdminExists(data && data.length > 0);
+      } catch (error) {
+        console.error('Exception checking for admin:', error);
+      }
+    };
+    
+    checkIfAdminExists();
+  }, []);
 
   // If user is already logged in, redirect to dashboard
   if (user) {
@@ -37,10 +63,10 @@ const Auth: React.FC<AuthProps> = ({ defaultTab = 'login' }) => {
                 <TabsTrigger value="register">Registro</TabsTrigger>
               </TabsList>
               <TabsContent value="login">
-                <LoginForm />
+                <LoginForm onLogin={signIn} />
               </TabsContent>
               <TabsContent value="register">
-                <RegisterForm />
+                <RegisterForm onRegister={signUp} adminExists={adminExists} />
               </TabsContent>
             </Tabs>
           </CardContent>
