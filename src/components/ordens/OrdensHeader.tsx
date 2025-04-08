@@ -15,9 +15,15 @@ interface OrdensHeaderProps {
   selectedOrder: ServiceOrder | null;
   setShowOrderView: (show: boolean) => void;
   orders: ServiceOrder[];
+  onNewOrder: () => void;
 }
 
-const OrdensHeader: React.FC<OrdensHeaderProps> = ({ selectedOrder, setShowOrderView, orders }) => {
+const OrdensHeader: React.FC<OrdensHeaderProps> = ({ 
+  selectedOrder, 
+  setShowOrderView, 
+  orders,
+  onNewOrder
+}) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
@@ -48,7 +54,7 @@ const OrdensHeader: React.FC<OrdensHeaderProps> = ({ selectedOrder, setShowOrder
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={onNewOrder}>
           <Plus className="h-4 w-4" /> Nova Ordem
         </Button>
       </div>

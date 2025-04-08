@@ -7,6 +7,7 @@ import OrdemServicoView from "@/components/ordens/OrdemServicoView";
 import OrdensHeader from "@/components/ordens/OrdensHeader";
 import OrdensSearch from "@/components/ordens/OrdensSearch";
 import OrdensTable from "@/components/ordens/OrdensTable";
+import OrdemServicoForm from "@/components/ordens/OrdemServicoForm";
 import { mockOrders, mockCustomers, mockCustomerProducts, mockProducts, mockServiceItems } from "@/components/ordens/mockData";
 import { getCustomerName } from "@/components/ordens/utils";
 
@@ -15,6 +16,7 @@ const OrdensDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
   const [showOrderView, setShowOrderView] = useState(false);
+  const [showOrderForm, setShowOrderForm] = useState(false);
   const [filteredOrders, setFilteredOrders] = useState(mockOrders);
   
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,20 +40,31 @@ const OrdensDashboard: React.FC = () => {
   const handleOrderClick = (order: ServiceOrder) => {
     setSelectedOrder(order);
     setShowOrderView(true);
+    setShowOrderForm(false);
   };
   
   const handleCloseOrderView = () => {
     setShowOrderView(false);
   };
   
+  const handleNewOrder = () => {
+    setShowOrderForm(true);
+    setShowOrderView(false);
+  };
+  
+  const handleCloseOrderForm = () => {
+    setShowOrderForm(false);
+  };
+  
   return (
     <div className="space-y-6">
-      {!showOrderView ? (
+      {!showOrderView && !showOrderForm ? (
         <>
           <OrdensHeader 
             selectedOrder={selectedOrder} 
             setShowOrderView={setShowOrderView} 
-            orders={filteredOrders} 
+            orders={filteredOrders}
+            onNewOrder={handleNewOrder}
           />
           
           <Card>
@@ -68,18 +81,18 @@ const OrdensDashboard: React.FC = () => {
             </CardContent>
           </Card>
         </>
-      ) : (
-        selectedOrder && (
-          <OrdemServicoView 
-            order={selectedOrder}
-            customer={mockCustomers.find(c => c.id === selectedOrder.customer_id)!}
-            customerProduct={mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id)!}
-            product={mockProducts.find(p => p.id === mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id)?.product_id)!}
-            serviceItems={mockServiceItems.filter(item => item.productId === mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id)?.product_id)}
-            onBack={handleCloseOrderView}
-          />
-        )
-      )}
+      ) : showOrderView && selectedOrder ? (
+        <OrdemServicoView 
+          order={selectedOrder}
+          customer={mockCustomers.find(c => c.id === selectedOrder.customer_id)!}
+          customerProduct={mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id)!}
+          product={mockProducts.find(p => p.id === mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id)?.product_id)!}
+          serviceItems={mockServiceItems.filter(item => item.productId === mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id)?.product_id)}
+          onBack={handleCloseOrderView}
+        />
+      ) : showOrderForm ? (
+        <OrdemServicoForm />
+      ) : null}
     </div>
   );
 };
