@@ -40,14 +40,18 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Define a type for customer products with joined product data
+type CustomerProductWithDetails = CustomerProduct & {
+  product?: Product;
+};
+
 const OrdemServicoForm: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [customerProducts, setCustomerProducts] = useState<CustomerProduct[]>([]);
+  const [customerProducts, setCustomerProducts] = useState<CustomerProductWithDetails[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
@@ -86,13 +90,17 @@ const OrdemServicoForm: React.FC = () => {
         .from("customer_products")
         .select(`
           *,
-          products:product_id(id, name, model)
+          product:product_id(id, name, model)
         `)
         .eq("customer_id", customerId);
       
       if (error) throw error;
       if (data) {
-        setCustomerProducts(data);
+        const formattedData = data.map(item => ({
+          ...item,
+          product: item.product as unknown as Product
+        }));
+        setCustomerProducts(formattedData as CustomerProductWithDetails[]);
       }
     } catch (error) {
       console.error("Error fetching customer products:", error);
@@ -245,7 +253,7 @@ const OrdemServicoForm: React.FC = () => {
                         <SelectContent>
                           {customerProducts.map((cp) => (
                             <SelectItem key={cp.id} value={cp.id}>
-                              {cp.products?.name} - {cp.products?.model}
+                              {cp.product?.name} - {cp.product?.model}
                             </SelectItem>
                           ))}
                         </SelectContent>
