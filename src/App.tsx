@@ -10,6 +10,7 @@ import Clientes from './pages/Clientes';
 import Produtos from './pages/Produtos';
 import OrdensDashboard from './pages/OrdensDashboard';
 import ProfilePage from './pages/ProfilePage';
+import Configuracoes from './pages/Configuracoes';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from "@/components/ui/toaster";
 import OrdemServicoForm from './components/ordens/OrdemServicoForm';
@@ -66,6 +67,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/configuracoes"
+            element={
+              <ProtectedRoute>
+                <Configuracoes />
               </ProtectedRoute>
             }
           />
