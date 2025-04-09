@@ -4,7 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import WebhookSettingsForm from "./WebhookSettingsForm";
 import EvolutionApiForm from "./EvolutionApiForm";
-import { Webhook, MessageSquare } from "lucide-react";
+import SMTPSettingsForm from "./SMTPSettingsForm";
+import { Webhook, MessageSquare, Mail } from "lucide-react";
 
 const IntegrationsSettingsForm: React.FC = () => {
   return (
@@ -26,6 +27,10 @@ const IntegrationsSettingsForm: React.FC = () => {
               <MessageSquare className="h-4 w-4" />
               <span>WhatsApp</span>
             </TabsTrigger>
+            <TabsTrigger value="smtp" className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              <span>SMTP</span>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="webhooks" className="space-y-4 pt-4">
@@ -34,6 +39,10 @@ const IntegrationsSettingsForm: React.FC = () => {
           
           <TabsContent value="whatsapp" className="space-y-4 pt-4">
             <EvolutionApiForm />
+          </TabsContent>
+          
+          <TabsContent value="smtp" className="space-y-4 pt-4">
+            <SMTPSettingsForm />
           </TabsContent>
         </Tabs>
       </CardContent>

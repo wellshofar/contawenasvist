@@ -16,4 +16,11 @@ export interface SystemSettings {
   evolutionToken?: string;
   evolutionUrl?: string;
   webhookUrl?: string;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpUser?: string;
+  smtpPassword?: string;
+  smtpSecure?: boolean;
+  smtpFromEmail?: string;
+  smtpFromName?: string;
 }
