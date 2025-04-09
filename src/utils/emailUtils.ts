@@ -35,7 +35,7 @@ export const sendEmail = async (options: SendEmailProps) => {
     return { success: true, data };
   } catch (error) {
     console.error("Failed to send email:", error);
-    throw error;
+    return { success: false, error };
   }
 };
 
@@ -46,19 +46,17 @@ export const testSMTPConnection = async () => {
   try {
     console.log("Testing SMTP connection");
     
-    const { data, error } = await supabase.functions.invoke("test-smtp", {
-      method: "GET"
-    });
+    const { data, error } = await supabase.functions.invoke("test-smtp");
 
     if (error) {
       console.error("Error testing SMTP connection:", error);
-      throw error;
+      return { success: false, error: error.message };
     }
 
     console.log("SMTP connection successful:", data);
     return { success: true, data };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to test SMTP connection:", error);
-    throw error;
+    return { success: false, error: error.message };
   }
 };

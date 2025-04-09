@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -11,6 +11,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
+import { testSMTPConnection } from "@/utils/emailUtils";
 
 const smtpFormSchema = z.object({
   smtpHost: z.string().min(1, { message: "O servidor SMTP é obrigatório" }),
@@ -32,7 +33,7 @@ const SMTPSettingsForm: React.FC = () => {
     smtpPort: systemSettings.smtpPort || 587,
     smtpUser: systemSettings.smtpUser || "",
     smtpPassword: systemSettings.smtpPassword || "",
-    smtpSecure: systemSettings.smtpSecure || true,
+    smtpSecure: systemSettings.smtpSecure !== false, // Default to true if not explicitly false
     smtpFromEmail: systemSettings.smtpFromEmail || "",
     smtpFromName: systemSettings.smtpFromName || "",
   };
@@ -42,8 +43,26 @@ const SMTPSettingsForm: React.FC = () => {
     defaultValues,
   });
 
+  // Update form when systemSettings change
+  useEffect(() => {
+    if (systemSettings) {
+      form.reset({
+        smtpHost: systemSettings.smtpHost || "",
+        smtpPort: systemSettings.smtpPort || 587,
+        smtpUser: systemSettings.smtpUser || "",
+        smtpPassword: systemSettings.smtpPassword || "",
+        smtpSecure: systemSettings.smtpSecure !== false,
+        smtpFromEmail: systemSettings.smtpFromEmail || "",
+        smtpFromName: systemSettings.smtpFromName || "",
+      });
+    }
+  }, [systemSettings, form]);
+
+  console.log("Current system settings:", systemSettings);
+
   const onSubmit = async (data: SMTPFormValues) => {
     try {
+      console.log("Submitting SMTP settings:", data);
       await updateSystemSettings(data);
       toast({
         title: "Configurações SMTP salvas",
@@ -59,7 +78,7 @@ const SMTPSettingsForm: React.FC = () => {
     }
   };
 
-  const testConnection = async () => {
+  const handleTestConnection = async () => {
     const values = form.getValues();
     
     // Validate form before testing
@@ -82,23 +101,17 @@ const SMTPSettingsForm: React.FC = () => {
       // Save settings first
       await updateSystemSettings(values);
       
-      // Make a request to test the SMTP connection
-      const response = await fetch("/api/test-smtp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
+      // Test the SMTP connection
+      const result = await testSMTPConnection();
       
-      if (!response.ok) {
-        throw new Error("Falha ao testar conexão SMTP");
+      if (result.success) {
+        toast({
+          title: "Conexão SMTP estabelecida",
+          description: "O email de teste foi enviado com sucesso.",
+        });
+      } else {
+        throw new Error(result.error || "Falha ao testar conexão SMTP");
       }
-      
-      toast({
-        title: "Conexão SMTP estabelecida",
-        description: "O email de teste foi enviado com sucesso.",
-      });
     } catch (error) {
       console.error("Erro ao testar conexão SMTP:", error);
       toast({
@@ -258,7 +271,7 @@ const SMTPSettingsForm: React.FC = () => {
             <Button 
               type="button" 
               variant="outline" 
-              onClick={testConnection}
+              onClick={handleTestConnection}
               disabled={isLoading}
             >
               Testar Conexão

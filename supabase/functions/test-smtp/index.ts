@@ -36,6 +36,7 @@ serve(async (req) => {
     if (req.method === "POST") {
       // Use the settings from the request body
       smtpConfig = await req.json() as SMTPConfig;
+      console.log("Using provided SMTP config:", smtpConfig);
     } else {
       // Fetch from system settings
       const { data: systemSettings, error } = await supabase
@@ -44,8 +45,11 @@ serve(async (req) => {
         .single();
       
       if (error) {
+        console.error("Error fetching system settings:", error);
         throw error;
       }
+      
+      console.log("Retrieved system settings:", systemSettings);
       
       const settings = systemSettings?.settings || {};
       smtpConfig = {
@@ -70,8 +74,8 @@ serve(async (req) => {
     const client = new SMTPClient({
       connection: {
         hostname: smtpConfig.smtpHost,
-        port: smtpConfig.smtpPort,
-        tls: smtpConfig.smtpSecure,
+        port: smtpConfig.smtpPort || 587,
+        tls: smtpConfig.smtpSecure !== false, // Default to true if not explicitly false
         auth: {
           username: smtpConfig.smtpUser,
           password: smtpConfig.smtpPassword,
@@ -81,7 +85,7 @@ serve(async (req) => {
 
     // Send test email
     await client.send({
-      from: `"${smtpConfig.smtpFromName}" <${smtpConfig.smtpFromEmail}>`,
+      from: `"${smtpConfig.smtpFromName || "Hoken Service"}" <${smtpConfig.smtpFromEmail || smtpConfig.smtpUser}>`,
       to: smtpConfig.smtpUser,
       subject: "Teste de Conexão SMTP - Hoken Service",
       content: "Este é um email de teste para verificar a conexão SMTP.",

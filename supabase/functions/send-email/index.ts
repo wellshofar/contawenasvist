@@ -53,8 +53,11 @@ serve(async (req) => {
       .single();
     
     if (error) {
+      console.error("Error fetching system settings:", error);
       throw error;
     }
+    
+    console.log("Retrieved system settings:", systemSettings);
     
     const settings = systemSettings?.settings || {};
     
@@ -70,7 +73,7 @@ serve(async (req) => {
       connection: {
         hostname: settings.smtpHost,
         port: settings.smtpPort || 587,
-        tls: settings.smtpSecure || true,
+        tls: settings.smtpSecure !== false, // Default to true if not explicitly false
         auth: {
           username: settings.smtpUser,
           password: settings.smtpPassword,
