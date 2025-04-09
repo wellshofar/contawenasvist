@@ -4,6 +4,7 @@ import { UserSettings, SystemSettings } from '@/types/settings';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 interface SettingsContextType {
   userSettings: UserSettings;
@@ -104,7 +105,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             .from('system_settings')
             .upsert({ 
               id: 1, 
-              settings: defaultSystemSettings,
+              settings: defaultSystemSettings as unknown as Json,
               updated_at: new Date().toISOString()
             });
         }
@@ -130,7 +131,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         .upsert({ 
           id: user.id,
           user_id: user.id, 
-          settings: newSettings,
+          settings: newSettings as unknown as Json,
           updated_at: new Date().toISOString()
         });
       
@@ -162,7 +163,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         .from('system_settings')
         .upsert({ 
           id: 1, 
-          settings: newSettings,
+          settings: newSettings as unknown as Json,
           updated_at: new Date().toISOString()
         });
       
