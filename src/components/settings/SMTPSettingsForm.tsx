@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -33,7 +32,7 @@ const SMTPSettingsForm: React.FC = () => {
     smtpPort: systemSettings.smtpPort || 587,
     smtpUser: systemSettings.smtpUser || "",
     smtpPassword: systemSettings.smtpPassword || "",
-    smtpSecure: systemSettings.smtpSecure !== false, // Default to true if not explicitly false
+    smtpSecure: systemSettings.smtpSecure !== false,
     smtpFromEmail: systemSettings.smtpFromEmail || "",
     smtpFromName: systemSettings.smtpFromName || "",
   };
@@ -43,7 +42,6 @@ const SMTPSettingsForm: React.FC = () => {
     defaultValues,
   });
 
-  // Update form when systemSettings change
   useEffect(() => {
     if (systemSettings) {
       form.reset({
@@ -81,7 +79,6 @@ const SMTPSettingsForm: React.FC = () => {
   const handleTestConnection = async () => {
     const values = form.getValues();
     
-    // Validate form before testing
     const validationResult = await form.trigger();
     if (!validationResult) {
       toast({
@@ -98,10 +95,8 @@ const SMTPSettingsForm: React.FC = () => {
     });
     
     try {
-      // Save settings first
       await updateSystemSettings(values);
       
-      // Test the SMTP connection
       const result = await testSMTPConnection();
       
       if (result.success) {
