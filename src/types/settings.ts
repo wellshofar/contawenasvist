@@ -18,6 +18,9 @@ export interface SystemSettings {
   smtpSecure: boolean;
   smtpFromEmail: string;
   smtpFromName: string;
+  evolutionInstance?: string;
+  evolutionToken?: string;
+  evolutionUrl?: string;
 }
 
 export type SMTPSettings = Pick<
@@ -29,4 +32,11 @@ export type SMTPSettings = Pick<
   | "smtpSecure"
   | "smtpFromEmail"
   | "smtpFromName"
+>;
+
+export type EvolutionApiSettings = Pick<
+  SystemSettings,
+  | "evolutionInstance"
+  | "evolutionToken"
+  | "evolutionUrl"
 >;
