@@ -35,7 +35,13 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get email request
-    const emailRequest: EmailRequest = await req.json();
+    let emailRequest: EmailRequest;
+    try {
+      emailRequest = await req.json();
+    } catch (parseError) {
+      console.error("Error parsing request body:", parseError);
+      throw new Error("Formato de solicitação inválido");
+    }
     
     // Validate email request
     if (!emailRequest.to || !emailRequest.subject) {

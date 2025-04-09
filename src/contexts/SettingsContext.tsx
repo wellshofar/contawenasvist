@@ -25,6 +25,13 @@ const defaultSystemSettings: SystemSettings = {
   address: '',
   phone: '',
   email: '',
+  smtpHost: '',
+  smtpPort: 587,
+  smtpUser: '',
+  smtpPassword: '',
+  smtpSecure: true,
+  smtpFromEmail: '',
+  smtpFromName: '',
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -45,35 +52,32 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     const fetchSettings = async () => {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-
       try {
         setIsLoading(true);
         
-        // Buscar configurações do usuário
-        const { data: userData, error: userError } = await supabase
-          .from('user_settings')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
+        // Fetch user settings if logged in
+        if (user) {
+          const { data: userData, error: userError } = await supabase
+            .from('user_settings')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
 
-        if (userError && userError.code !== 'PGRST116') {
-          console.error('Erro ao buscar configurações do usuário:', userError);
+          if (userError && userError.code !== 'PGRST116') {
+            console.error('Erro ao buscar configurações do usuário:', userError);
+          }
+
+          if (userData) {
+            // Safely handle the settings conversion with proper type checks
+            const storedSettings = userData.settings as Record<string, any>;
+            setUserSettings({
+              ...defaultUserSettings,
+              ...(storedSettings as Partial<UserSettings>)
+            });
+          }
         }
 
-        if (userData) {
-          // Safely handle the settings conversion with proper type checks
-          const storedSettings = userData.settings as Record<string, any>;
-          setUserSettings({
-            ...defaultUserSettings,
-            ...(storedSettings as Partial<UserSettings>)
-          });
-        }
-
-        // Buscar configurações do sistema
+        // Fetch system settings (regardless of login status)
         const { data: sysData, error: sysError } = await supabase
           .from('system_settings')
           .select('*')
@@ -90,6 +94,19 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             ...defaultSystemSettings,
             ...(storedSettings as Partial<SystemSettings>)
           });
+          console.log("Loaded system settings:", {
+            ...defaultSystemSettings,
+            ...(storedSettings as Partial<SystemSettings>)
+          });
+        } else {
+          // If no system settings found, create default ones
+          await supabase
+            .from('system_settings')
+            .upsert({ 
+              id: 1, 
+              settings: defaultSystemSettings,
+              updated_at: new Date().toISOString()
+            });
         }
       } catch (error) {
         console.error('Erro ao buscar configurações:', error);
@@ -130,6 +147,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         description: "Não foi possível atualizar suas preferências.",
         variant: "destructive",
       });
+      throw error;
     }
   };
 
@@ -137,6 +155,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       const newSettings = { ...systemSettings, ...settings };
       setSystemSettings(newSettings);
+      
+      console.log("Saving system settings:", newSettings);
       
       const { error } = await supabase
         .from('system_settings')
@@ -146,7 +166,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           updated_at: new Date().toISOString()
         });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro Supabase ao atualizar configurações do sistema:', error);
+        throw error;
+      }
       
       toast({
         title: "Configurações do sistema atualizadas",
@@ -159,6 +182,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         description: "Não foi possível atualizar as configurações do sistema.",
         variant: "destructive",
       });
+      throw error;
     }
   };
 

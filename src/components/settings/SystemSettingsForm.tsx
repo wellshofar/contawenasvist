@@ -7,19 +7,41 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { SystemSettings } from "@/types/settings";
+import { toast } from "@/hooks/use-toast";
 
 const SystemSettingsForm: React.FC = () => {
   const { systemSettings, updateSystemSettings } = useSettings();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { register, handleSubmit, formState: { errors } } = useForm<SystemSettings>({
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<SystemSettings>({
     defaultValues: systemSettings
   });
 
+  React.useEffect(() => {
+    // Update form when systemSettings change
+    if (systemSettings) {
+      reset(systemSettings);
+    }
+  }, [systemSettings, reset]);
+
   const onSubmit = async (data: SystemSettings) => {
-    setIsSubmitting(true);
-    await updateSystemSettings(data);
-    setIsSubmitting(false);
+    try {
+      setIsSubmitting(true);
+      await updateSystemSettings(data);
+      toast({
+        title: "Configurações salvas",
+        description: "As configurações da empresa foram atualizadas com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao salvar configurações:", error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar as configurações da empresa.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -79,8 +101,6 @@ const SystemSettingsForm: React.FC = () => {
               <p className="text-sm text-destructive">{errors.email.message}</p>
             )}
           </div>
-          
-          {/* Aqui poderia adicionar um componente para upload do logo */}
         </CardContent>
         <CardFooter>
           <Button type="submit" disabled={isSubmitting}>

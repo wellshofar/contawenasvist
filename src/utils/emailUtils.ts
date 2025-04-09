@@ -46,7 +46,10 @@ export const testSMTPConnection = async () => {
   try {
     console.log("Testing SMTP connection");
     
-    const { data, error } = await supabase.functions.invoke("test-smtp");
+    // Call the test-smtp function without a body to use the stored settings
+    const { data, error } = await supabase.functions.invoke("test-smtp", {
+      method: 'POST'
+    });
 
     if (error) {
       console.error("Error testing SMTP connection:", error);

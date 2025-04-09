@@ -34,9 +34,65 @@ serve(async (req) => {
     let smtpConfig: SMTPConfig;
     
     if (req.method === "POST") {
-      // Use the settings from the request body
-      smtpConfig = await req.json() as SMTPConfig;
-      console.log("Using provided SMTP config:", smtpConfig);
+      try {
+        // Try to parse the request body as JSON
+        const requestText = await req.text();
+        if (requestText.trim() === "") {
+          // If the request body is empty, fetch from system settings
+          console.log("Empty request body, fetching from system settings");
+          const { data: systemSettings, error } = await supabase
+            .from('system_settings')
+            .select('settings')
+            .single();
+          
+          if (error) {
+            console.error("Error fetching system settings:", error);
+            throw error;
+          }
+          
+          console.log("Retrieved system settings:", systemSettings);
+          
+          const settings = systemSettings?.settings || {};
+          smtpConfig = {
+            smtpHost: settings.smtpHost,
+            smtpPort: settings.smtpPort,
+            smtpUser: settings.smtpUser,
+            smtpPassword: settings.smtpPassword,
+            smtpSecure: settings.smtpSecure,
+            smtpFromEmail: settings.smtpFromEmail,
+            smtpFromName: settings.smtpFromName,
+          };
+        } else {
+          // Parse the JSON body
+          smtpConfig = JSON.parse(requestText);
+          console.log("Using provided SMTP config:", smtpConfig);
+        }
+      } catch (parseError) {
+        console.error("Error parsing request body:", parseError);
+        // Fetch from system settings as fallback
+        const { data: systemSettings, error } = await supabase
+          .from('system_settings')
+          .select('settings')
+          .single();
+        
+        if (error) {
+          console.error("Error fetching system settings:", error);
+          throw error;
+        }
+        
+        console.log("Retrieved system settings:", systemSettings);
+        
+        const settings = systemSettings?.settings || {};
+        smtpConfig = {
+          smtpHost: settings.smtpHost,
+          smtpPort: settings.smtpPort,
+          smtpUser: settings.smtpUser,
+          smtpPassword: settings.smtpPassword,
+          smtpSecure: settings.smtpSecure,
+          smtpFromEmail: settings.smtpFromEmail,
+          smtpFromName: settings.smtpFromName,
+        };
+      }
     } else {
       // Fetch from system settings
       const { data: systemSettings, error } = await supabase
