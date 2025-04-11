@@ -21,6 +21,7 @@ export interface SystemSettings {
   evolutionInstance?: string;
   evolutionToken?: string;
   evolutionUrl?: string;
+  webhookUrl?: string;
 }
 
 export type SMTPSettings = Pick<
@@ -39,4 +40,9 @@ export type EvolutionApiSettings = Pick<
   | "evolutionInstance"
   | "evolutionToken"
   | "evolutionUrl"
+>;
+
+export type WebhookSettings = Pick<
+  SystemSettings,
+  | "webhookUrl"
 >;
