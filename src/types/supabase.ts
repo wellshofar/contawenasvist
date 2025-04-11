@@ -9,6 +9,7 @@ export interface Profile {
   phone: string | null;
   created_at: string;
   updated_at: string;
+  avatar_url: string | null;  // Added avatar_url property
 }
 
 export interface Customer {
