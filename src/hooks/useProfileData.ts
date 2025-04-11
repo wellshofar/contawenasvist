@@ -31,6 +31,7 @@ export const useProfileData = () => {
           .single();
           
         if (profileError) {
+          console.error("Error fetching profile data:", profileError);
           throw profileError;
         }
         
