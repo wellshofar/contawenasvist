@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Edit } from "lucide-react";
+import { Edit, User } from "lucide-react";
 
 const ProfilePage: React.FC = () => {
   const { user, profile } = useAuth();
@@ -26,10 +26,16 @@ const ProfilePage: React.FC = () => {
       </div>
 
       <Card className="md:col-span-2">
-        <CardHeader>
-          <CardTitle>Informações Pessoais</CardTitle>
+        <CardHeader className="flex flex-row items-center gap-4 pb-2">
+          <div className="bg-primary/10 rounded-full p-3">
+            <User className="h-10 w-10 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="text-xl">{profile?.full_name || 'Usuário'}</CardTitle>
+            <p className="text-sm text-muted-foreground">{user?.email}</p>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-4">
           <div>
             <h3 className="font-medium">Email</h3>
             <p className="text-muted-foreground">{user?.email}</p>

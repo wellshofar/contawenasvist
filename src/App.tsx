@@ -20,66 +20,22 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/agendamentos"
-            element={
-              <ProtectedRoute>
-                <Agendamentos />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/clientes"
-            element={
-              <ProtectedRoute>
-                <Clientes />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/produtos"
-            element={
-              <ProtectedRoute>
-                <Produtos />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/ordens"
-            element={
-              <ProtectedRoute>
-                <OrdensDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/configuracoes"
-            element={
-              <ProtectedRoute>
-                <Configuracoes />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" />} />
+          
+          {/* Protected routes */}
+          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/agendamentos" element={<ProtectedRoute><Agendamentos /></ProtectedRoute>} />
+          <Route path="/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
+          <Route path="/produtos" element={<ProtectedRoute><Produtos /></ProtectedRoute>} />
+          <Route path="/ordens" element={<ProtectedRoute><OrdensDashboard /></ProtectedRoute>} />
           <Route path="/ordens/new" element={<ProtectedRoute><OrdemServicoForm /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+          
+          {/* Redirect all other routes to dashboard */}
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
         <Toaster />
       </BrowserRouter>

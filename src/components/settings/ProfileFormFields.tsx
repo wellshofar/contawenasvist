@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { CardContent, CardFooter } from "@/components/ui/card";
 import { ProfileFormData } from "@/hooks/useProfileData";
+import { useNavigate } from "react-router-dom";
+import { KeyRound } from "lucide-react";
 
 interface ProfileFormFieldsProps {
   defaultValues: {
@@ -22,6 +24,7 @@ const ProfileFormFields: React.FC<ProfileFormFieldsProps> = ({
   onSubmit,
   isSubmitting
 }) => {
+  const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm<ProfileFormData>({
     defaultValues
   });
@@ -35,6 +38,7 @@ const ProfileFormFields: React.FC<ProfileFormFieldsProps> = ({
             <Input 
               id="full_name" 
               {...register("full_name", { required: "Nome é obrigatório" })}
+              className="w-full"
             />
             {errors.full_name && (
               <p className="text-sm text-destructive">{errors.full_name.message}</p>
@@ -47,6 +51,7 @@ const ProfileFormFields: React.FC<ProfileFormFieldsProps> = ({
               id="phone" 
               placeholder="(00) 00000-0000" 
               {...register("phone")}
+              className="w-full"
             />
           </div>
           
@@ -62,6 +67,7 @@ const ProfileFormFields: React.FC<ProfileFormFieldsProps> = ({
                   message: "E-mail inválido"
                 }
               })}
+              className="w-full"
             />
             {errors.email && (
               <p className="text-sm text-destructive">{errors.email.message}</p>
@@ -70,7 +76,13 @@ const ProfileFormFields: React.FC<ProfileFormFieldsProps> = ({
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button type="button" variant="outline">
+        <Button 
+          type="button" 
+          variant="outline"
+          className="flex items-center gap-2"
+          onClick={() => navigate('/configuracoes?tab=security')}
+        >
+          <KeyRound className="h-4 w-4" />
           Alterar Senha
         </Button>
         <Button type="submit" disabled={isSubmitting}>

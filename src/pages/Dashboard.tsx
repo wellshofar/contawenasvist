@@ -1,10 +1,13 @@
 
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Package, Calendar, ClipboardCheck } from "lucide-react";
+import { Users, Package, Calendar, ClipboardCheck, ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard: React.FC = () => {
+  const { profile } = useAuth();
+  
   // Mock data
   const stats = [
     { title: "Clientes", value: "124", icon: Users, color: "bg-blue-50 text-blue-500", link: "/clientes" },
@@ -33,13 +36,16 @@ const Dashboard: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Visão geral do sistema de gerenciamento de serviços HOKEN.</p>
+        <p className="text-muted-foreground mt-1">
+          Bem-vindo{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}! 
+          Aqui está a visão geral do sistema de gerenciamento de serviços HOKEN.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <Link to={stat.link} key={index} className="card-hover">
-            <Card className="overflow-hidden">
+          <Link to={stat.link} key={index} className="transition-all duration-300 hover:scale-105">
+            <Card className="overflow-hidden border-l-4" style={{ borderLeftColor: stat.color.split(' ')[1].replace('text-', 'var(--') + ')' }}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -57,15 +63,23 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="card-hover">
-          <CardHeader>
-            <CardTitle>Ordens de Serviço Recentes</CardTitle>
-            <CardDescription>Últimas ordens de serviço registradas no sistema</CardDescription>
+        <Card className="transition-all duration-300 hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Ordens de Serviço Recentes</CardTitle>
+              <CardDescription>Últimas ordens de serviço registradas no sistema</CardDescription>
+            </div>
+            <Link 
+              to="/ordens" 
+              className="text-primary hover:text-primary/80 flex items-center gap-1 text-sm"
+            >
+              Ver todas <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {recentOrders.map((order, index) => (
-                <div key={index} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+                <div key={index} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0 hover:bg-accent/20 p-2 rounded-md transition-colors">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{order.id}</span>
@@ -89,15 +103,23 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="card-hover">
-          <CardHeader>
-            <CardTitle>Próximas Manutenções</CardTitle>
-            <CardDescription>Manutenções programadas para os próximos dias</CardDescription>
+        <Card className="transition-all duration-300 hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Próximas Manutenções</CardTitle>
+              <CardDescription>Manutenções programadas para os próximos dias</CardDescription>
+            </div>
+            <Link 
+              to="/agendamentos" 
+              className="text-primary hover:text-primary/80 flex items-center gap-1 text-sm"
+            >
+              Ver todas <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {upcomingMaintenance.map((maintenance, index) => (
-                <div key={index} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+                <div key={index} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0 hover:bg-accent/20 p-2 rounded-md transition-colors">
                   <div className="flex flex-col">
                     <span className="font-semibold">{maintenance.client}</span>
                     <span className="text-sm text-muted-foreground">{maintenance.product}</span>
