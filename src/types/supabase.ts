@@ -1,4 +1,3 @@
-
 export type UserRole = 'admin' | 'tecnico' | 'atendente';
 
 export interface Profile {
@@ -9,7 +8,7 @@ export interface Profile {
   phone: string | null;
   created_at: string;
   updated_at: string;
-  avatar_url: string | null;  // Added avatar_url property
+  avatar_url: string | null;  // Keeping this for backward compatibility
 }
 
 export interface Customer {

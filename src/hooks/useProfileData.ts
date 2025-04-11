@@ -15,7 +15,6 @@ export const useProfileData = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<ProfileFormData | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -33,11 +32,6 @@ export const useProfileData = () => {
         if (profileError) {
           console.error("Error fetching profile data:", profileError);
           throw profileError;
-        }
-        
-        // Get avatar URL directly from profile
-        if (profile && profile.avatar_url) {
-          setAvatarUrl(profile.avatar_url);
         }
         
         setProfileData({
@@ -101,8 +95,6 @@ export const useProfileData = () => {
   return {
     isLoading,
     profileData,
-    avatarUrl,
-    setAvatarUrl,
     updateProfile,
   };
 };

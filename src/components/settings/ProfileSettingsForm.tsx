@@ -2,18 +2,15 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import ProfileAvatarUpload from "./ProfileAvatarUpload";
 import ProfileFormFields from "./ProfileFormFields";
 import { useProfileData, ProfileFormData } from "@/hooks/useProfileData";
 
 const ProfileSettingsForm: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { 
     isLoading, 
     profileData, 
-    avatarUrl, 
-    setAvatarUrl, 
     updateProfile 
   } = useProfileData();
 
@@ -44,13 +41,6 @@ const ProfileSettingsForm: React.FC = () => {
           Atualize suas informações pessoais
         </CardDescription>
       </CardHeader>
-      <CardContent className="pb-0">
-        <ProfileAvatarUpload 
-          avatarUrl={avatarUrl} 
-          setAvatarUrl={setAvatarUrl}
-          profile={profile}
-        />
-      </CardContent>
       <ProfileFormFields
         defaultValues={{
           full_name: profileData?.full_name || '',
