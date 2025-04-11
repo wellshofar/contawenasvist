@@ -83,7 +83,6 @@ export const useAgendamentos = () => {
           
         if (!profilesError && profiles) {
           technicianData = profiles.reduce((acc, profile) => {
-            // Fix: Use full_name instead of email
             acc[profile.id] = profile.full_name || 'Usuário sem nome';
             return acc;
           }, {});
@@ -124,7 +123,7 @@ export const useAgendamentos = () => {
       // Handle the "none" value for productId
       const productId = values.productId === "none" ? null : values.productId;
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("service_orders")
         .insert({
           title: values.title,
@@ -134,7 +133,8 @@ export const useAgendamentos = () => {
           scheduled_date: values.scheduledDate.toISOString(),
           status: values.status,
           created_by: user?.id || null,
-        });
+        })
+        .select();
 
       if (error) throw error;
 
@@ -177,7 +177,10 @@ export const useAgendamentos = () => {
         })
         .eq("id", values.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating agendamento:", error);
+        throw error;
+      }
 
       toast({
         title: "Agendamento atualizado",

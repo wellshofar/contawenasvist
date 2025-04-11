@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
@@ -104,7 +105,7 @@ export const AgendamentoForm: React.FC<AgendamentoFormProps> = ({
     };
 
     fetchCustomers();
-  }, [isEditing, currentAgendamento]);
+  }, [isEditing, currentAgendamento, toast]);
 
   const fetchCustomerProducts = async (customerId: string) => {
     setIsLoadingProducts(true);

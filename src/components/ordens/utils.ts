@@ -1,46 +1,111 @@
 
 import { ServiceOrder } from "@/types/supabase";
-import { mockCustomers, mockCustomerProducts, mockProducts } from "./mockData";
+import { supabase } from "@/integrations/supabase/client";
 
-// Get customer name from customer id
-export const getCustomerName = (customerId: string) => {
-  return mockCustomers.find(customer => customer.id === customerId)?.name || "Cliente não encontrado";
+// Variable to cache customer names
+let customerCache = {};
+// Variable to cache product names
+let productCache = {};
+
+export const getCustomerName = async (customerId: string): Promise<string> => {
+  // Check if customer name is already in cache
+  if (customerCache[customerId]) {
+    return customerCache[customerId];
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("customers")
+      .select("name")
+      .eq("id", customerId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching customer:", error);
+      return "Cliente não encontrado";
+    }
+
+    const name = data.name;
+    // Store name in cache
+    customerCache[customerId] = name;
+    return name;
+  } catch (error) {
+    console.error("Error in getCustomerName:", error);
+    return "Cliente não encontrado";
+  }
 };
 
-// Get product name from customer product id
-export const getProductName = (customerProductId: string | null) => {
-  if (!customerProductId) return "Produto não especificado";
+export const getProductName = async (customerProductId: string | null): Promise<string> => {
+  if (!customerProductId) {
+    return "Nenhum produto";
+  }
+
+  // Check if product name is already in cache
+  if (productCache[customerProductId]) {
+    return productCache[customerProductId];
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("customer_products")
+      .select(`
+        products (
+          name,
+          model
+        )
+      `)
+      .eq("id", customerProductId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching product:", error);
+      return "Produto não encontrado";
+    }
+
+    const productName = data.products.name;
+    const model = data.products.model;
+    const fullName = model ? `${productName} (${model})` : productName;
+    
+    // Store name in cache
+    productCache[customerProductId] = fullName;
+    return fullName;
+  } catch (error) {
+    console.error("Error in getProductName:", error);
+    return "Produto não encontrado";
+  }
+};
+
+export const downloadExampleCSV = (orders: ServiceOrder[]) => {
+  // Create CSV header row
+  const headers = ["ID", "Título", "Cliente", "Status", "Data Agendada"];
   
-  const customerProduct = mockCustomerProducts.find(cp => cp.id === customerProductId);
-  if (!customerProduct) return "Produto não encontrado";
+  // Convert orders to CSV rows
+  const rows = orders.map(order => {
+    return [
+      order.id,
+      order.title,
+      "[Cliente]", // Placeholder since we don't have the name here
+      order.status,
+      order.scheduled_date ? new Date(order.scheduled_date).toLocaleDateString("pt-BR") : "-"
+    ];
+  });
   
-  const product = mockProducts.find(p => p.id === customerProduct.product_id);
-  return product ? product.name : "Produto não encontrado";
-};
-
-// Generate CSV content for orders
-export const generateOrdersCsv = (orders: ServiceOrder[]) => {
-  return "ID,Cliente,Produto,Data,Status,Técnico\n" +
-    orders.map(order => 
-      `${order.id},${getCustomerName(order.customer_id)},${getProductName(order.customer_product_id)},${new Date(order.scheduled_date || "").toLocaleDateString("pt-BR")},${order.status},${order.assigned_to || "Não atribuído"}`
-    ).join("\n");
-};
-
-// Download CSV file
-export const downloadCsv = (csvContent: string, filename: string) => {
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  // Combine headers and rows into CSV content
+  const csvContent = [
+    headers.join(","),
+    ...rows.map(row => row.join(","))
+  ].join("\n");
+  
+  // Create a Blob containing the CSV data
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
+  
+  // Create a link and trigger the download
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `ordens_servico_${new Date().toISOString().slice(0, 10)}.csv`);
+  link.style.visibility = "hidden";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-};
-
-// Download example CSV
-export const downloadExampleCSV = (orders: ServiceOrder[]) => {
-  const csvContent = generateOrdersCsv(orders);
-  downloadCsv(csvContent, `ordens_servico_${new Date().toISOString().split('T')[0]}.csv`);
 };
