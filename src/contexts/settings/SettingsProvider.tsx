@@ -1,156 +1,170 @@
 
-import React, { useState, useEffect } from 'react';
-import { SettingsContext } from './SettingsContext';
-import { UserSettings, SystemSettings } from '@/types/settings';
-import { defaultUserSettings, defaultSystemSettings } from './defaults';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { SystemSettings, UserSettings } from '@/types/settings';
+import { SettingsContext, SettingsContextType } from './SettingsContext';
+import { defaultSystemSettings, defaultUserSettings } from './defaults';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
-import { Json } from '@/integrations/supabase/types';
+import { useToast } from '@/hooks/use-toast';
 
-export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
+  children 
+}) => {
   const [userSettings, setUserSettings] = useState<UserSettings>(defaultUserSettings);
   const [systemSettings, setSystemSettings] = useState<SystemSettings>(defaultSystemSettings);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
+  // Fetch settings when the component mounts or user changes
   useEffect(() => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
     const fetchSettings = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        
-        // Fetch user settings if logged in
-        if (user) {
-          const { data: userData, error: userError } = await supabase
-            .from('user_settings')
-            .select('*')
-            .eq('user_id', user.id)
-            .single();
-
-          if (userError && userError.code !== 'PGRST116') {
-            console.error('Erro ao buscar configurações do usuário:', userError);
-          }
-
-          if (userData) {
-            // Safely handle the settings conversion with proper type checks
-            const storedSettings = userData.settings as Record<string, any>;
-            setUserSettings({
-              ...defaultUserSettings,
-              ...(storedSettings as Partial<UserSettings>)
-            });
-          }
-        }
-
-        // Fetch system settings (regardless of login status)
-        const { data: sysData, error: sysError } = await supabase
-          .from('system_settings')
-          .select('*')
+        // Fetch user settings
+        const { data: userData, error: userError } = await supabase
+          .from('user_settings')
+          .select('settings')
+          .eq('user_id', user.id)
           .single();
 
-        if (sysError && sysError.code !== 'PGRST116') {
-          console.error('Erro ao buscar configurações do sistema:', sysError);
+        if (userError && userError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+          console.error('Error fetching user settings:', userError);
+          toast({
+            title: 'Erro ao carregar configurações',
+            description: 'Não foi possível carregar suas configurações pessoais.',
+            variant: 'destructive',
+          });
+        } else if (userData) {
+          setUserSettings({
+            ...defaultUserSettings,
+            ...userData.settings,
+          });
         }
 
-        if (sysData) {
-          // Safely handle the settings conversion with proper type checks
-          const storedSettings = sysData.settings as Record<string, any>;
+        // Fetch system settings (assuming user has permission)
+        const { data: systemData, error: systemError } = await supabase
+          .from('system_settings')
+          .select('settings')
+          .eq('id', 1) // Assuming a single system settings record
+          .single();
+
+        if (systemError && systemError.code !== 'PGRST116') {
+          console.error('Error fetching system settings:', systemError);
+          toast({
+            title: 'Erro ao carregar configurações do sistema',
+            description: 'Não foi possível carregar as configurações do sistema.',
+            variant: 'destructive',
+          });
+        } else if (systemData) {
           setSystemSettings({
             ...defaultSystemSettings,
-            ...(storedSettings as Partial<SystemSettings>)
+            ...systemData.settings,
           });
-          console.log("Loaded system settings:", {
-            ...defaultSystemSettings,
-            ...(storedSettings as Partial<SystemSettings>)
-          });
-        } else {
-          // If no system settings found, create default ones
-          await supabase
-            .from('system_settings')
-            .upsert({ 
-              id: 1, 
-              settings: defaultSystemSettings as unknown as Json,
-              updated_at: new Date().toISOString()
-            });
         }
       } catch (error) {
-        console.error('Erro ao buscar configurações:', error);
+        console.error('Unexpected error loading settings:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchSettings();
-  }, [user]);
+  }, [user, toast]);
 
-  const updateUserSettings = async (settings: Partial<UserSettings>) => {
+  // Update user settings
+  const updateUserSettings = async (newSettings: Partial<UserSettings>) => {
     if (!user) return;
-    
+
     try {
-      const newSettings = { ...userSettings, ...settings };
-      setUserSettings(newSettings);
+      const mergedSettings = {
+        ...userSettings,
+        ...newSettings,
+      };
       
-      const { error } = await supabase
+      setUserSettings(mergedSettings);
+
+      const { data, error } = await supabase
         .from('user_settings')
-        .upsert({ 
+        .upsert({
           id: user.id,
-          user_id: user.id, 
-          settings: newSettings as unknown as Json,
-          updated_at: new Date().toISOString()
-        });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Configurações atualizadas",
-        description: "Suas preferências foram salvas com sucesso.",
-      });
-    } catch (error) {
-      console.error('Erro ao atualizar configurações do usuário:', error);
-      toast({
-        title: "Erro ao salvar configurações",
-        description: "Não foi possível atualizar suas preferências.",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
+          user_id: user.id,
+          settings: mergedSettings,
+          updated_at: new Date().toISOString(),
+        })
+        .select();
 
-  const updateSystemSettings = async (settings: Partial<SystemSettings>) => {
-    try {
-      const newSettings = { ...systemSettings, ...settings };
-      setSystemSettings(newSettings);
-      
-      console.log("Saving system settings:", newSettings);
-      
-      const { error } = await supabase
-        .from('system_settings')
-        .upsert({ 
-          id: 1, 
-          settings: newSettings as unknown as Json,
-          updated_at: new Date().toISOString()
-        });
-      
       if (error) {
-        console.error('Erro Supabase ao atualizar configurações do sistema:', error);
-        throw error;
+        console.error('Error updating user settings:', error);
+        toast({
+          title: 'Erro ao salvar configurações',
+          description: 'Não foi possível salvar suas configurações pessoais.',
+          variant: 'destructive',
+        });
+        // Rollback optimistic update
+        setUserSettings(userSettings);
+      } else {
+        toast({
+          title: 'Configurações atualizadas',
+          description: 'Suas configurações foram salvas com sucesso.',
+        });
       }
-      
-      toast({
-        title: "Configurações do sistema atualizadas",
-        description: "As configurações do sistema foram salvas com sucesso.",
-      });
     } catch (error) {
-      console.error('Erro ao atualizar configurações do sistema:', error);
-      toast({
-        title: "Erro ao salvar configurações",
-        description: "Não foi possível atualizar as configurações do sistema.",
-        variant: "destructive",
-      });
-      throw error;
+      console.error('Unexpected error updating user settings:', error);
+      // Rollback optimistic update
+      setUserSettings(userSettings);
     }
   };
 
-  const value = {
+  // Update system settings
+  const updateSystemSettings = async (newSettings: Partial<SystemSettings>) => {
+    if (!user) return;
+
+    try {
+      const mergedSettings = {
+        ...systemSettings,
+        ...newSettings,
+      };
+      
+      setSystemSettings(mergedSettings);
+
+      const { data, error } = await supabase
+        .from('system_settings')
+        .upsert({
+          id: 1, // Assuming a single system settings record
+          settings: mergedSettings,
+          updated_at: new Date().toISOString(),
+        })
+        .select();
+
+      if (error) {
+        console.error('Error updating system settings:', error);
+        toast({
+          title: 'Erro ao salvar configurações do sistema',
+          description: 'Não foi possível salvar as configurações do sistema.',
+          variant: 'destructive',
+        });
+        // Rollback optimistic update
+        setSystemSettings(systemSettings);
+      } else {
+        toast({
+          title: 'Configurações do sistema atualizadas',
+          description: 'As configurações do sistema foram salvas com sucesso.',
+        });
+      }
+    } catch (error) {
+      console.error('Unexpected error updating system settings:', error);
+      // Rollback optimistic update
+      setSystemSettings(systemSettings);
+    }
+  };
+
+  const value: SettingsContextType = {
     userSettings,
     systemSettings,
     isLoading,
