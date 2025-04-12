@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import AgendamentoReportDialog from "@/components/relatorios/AgendamentoReportDialog";
+import { exportAppointmentsToCsv } from "@/hooks/agendamentos/agendamentoUtils";
 
 const statusColors = {
   pending: "bg-yellow-500",
@@ -103,41 +103,6 @@ const Agendamentos: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const exportToCSV = (agendamentos) => {
-    // Create CSV header row
-    const headers = ['Título', 'Cliente', 'Data', 'Horário', 'Status', 'Descrição'];
-    
-    // Convert each appointment to a row of data
-    const rows = agendamentos.map(agendamento => {
-      const date = new Date(agendamento.scheduledDate);
-      return [
-        agendamento.title,
-        agendamento.customerName,
-        format(date, "dd/MM/yyyy", { locale: ptBR }),
-        format(date, "HH:mm", { locale: ptBR }),
-        statusTranslations[agendamento.status],
-        agendamento.description || ''
-      ];
-    });
-    
-    // Combine headers and rows
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
-    
-    // Create download link
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `relatorio_agendamentos_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -191,7 +156,7 @@ const Agendamentos: React.FC = () => {
                 Imprimir
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => exportToCSV(filteredAgendamentos)}
+                onClick={() => exportAppointmentsToCsv(filteredAgendamentos, statusTranslations)}
               >
                 <Download className="mr-2 h-4 w-4" />
                 Exportar CSV

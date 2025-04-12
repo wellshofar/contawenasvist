@@ -1,9 +1,17 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { Appointment } from "@/types/agendamentos";
+import { Appointment, AppointmentFormValues } from "@/types/agendamentos";
 import { useAuth } from "@/contexts/AuthContext";
+import { 
+  fetchAppointmentsData, 
+  fetchCustomerProductDetails, 
+  fetchTechnicianDetails,
+  addAppointmentToDb,
+  updateAppointmentInDb,
+  deleteAppointmentFromDb
+} from "./agendamentos/agendamentosApi";
+import { mapServiceOrdersToAppointments } from "./agendamentos/agendamentoMappers";
 
 export const useAgendamentos = () => {
   const { toast } = useToast();
@@ -18,91 +26,29 @@ export const useAgendamentos = () => {
   const fetchAgendamentos = async () => {
     setLoading(true);
     try {
-      // Get appointments from service_orders table with scheduled_date
-      const { data: serviceOrders, error } = await supabase
-        .from("service_orders")
-        .select(`
-          id,
-          title,
-          description,
-          customer_id,
-          customer_product_id,
-          status,
-          scheduled_date,
-          assigned_to,
-          customers(name)
-        `)
-        .not('scheduled_date', 'is', null)
-        .order('scheduled_date', { ascending: false });
-
-      if (error) throw error;
+      // Get service orders data
+      const serviceOrders = await fetchAppointmentsData();
       
       // Get product details for customer products
       const customerProductIds = serviceOrders
         .filter(order => order.customer_product_id)
         .map(order => order.customer_product_id);
       
-      let productData = {};
-      
-      if (customerProductIds.length > 0) {
-        const { data: customerProducts, error: cpError } = await supabase
-          .from("customer_products")
-          .select(`
-            id,
-            product_id,
-            products(name)
-          `)
-          .in('id', customerProductIds);
-          
-        if (!cpError && customerProducts) {
-          productData = customerProducts.reduce((acc, cp) => {
-            acc[cp.id] = {
-              productId: cp.product_id,
-              productName: cp.products?.name || 'Produto não informado'
-            };
-            return acc;
-          }, {});
-        }
-      }
+      const productData = await fetchCustomerProductDetails(customerProductIds);
       
       // Get assigned technicians
       const technicianIds = serviceOrders
         .filter(order => order.assigned_to)
         .map(order => order.assigned_to);
       
-      let technicianData = {};
-      
-      if (technicianIds.length > 0) {
-        const { data: profiles, error: profilesError } = await supabase
-          .from("profiles")
-          .select(`
-            id,
-            full_name
-          `)
-          .in('id', technicianIds);
-          
-        if (!profilesError && profiles) {
-          technicianData = profiles.reduce((acc, profile) => {
-            acc[profile.id] = profile.full_name || 'Usuário sem nome';
-            return acc;
-          }, {});
-        }
-      }
+      const technicianData = await fetchTechnicianDetails(technicianIds);
       
       // Map the service orders to the appointment format
-      const mappedAgendamentos = serviceOrders.map(order => ({
-        id: order.id,
-        title: order.title,
-        description: order.description || '',
-        customerId: order.customer_id,
-        customerName: order.customers?.name || 'Cliente não informado',
-        productId: order.customer_product_id ? productData[order.customer_product_id]?.productId : null,
-        productName: order.customer_product_id ? productData[order.customer_product_id]?.productName : null,
-        scheduledDate: order.scheduled_date,
-        assignedToId: order.assigned_to,
-        assignedToName: order.assigned_to ? technicianData[order.assigned_to] : null,
-        status: order.status || 'pending'
-      })) as Appointment[];
+      const mappedAgendamentos = mapServiceOrdersToAppointments(
+        serviceOrders, 
+        productData, 
+        technicianData
+      );
       
       setAgendamentos(mappedAgendamentos);
     } catch (error) {
@@ -118,26 +64,10 @@ export const useAgendamentos = () => {
   };
 
   // Add new appointment
-  const addAgendamento = async (values) => {
+  const addAgendamento = async (values: AppointmentFormValues) => {
     try {
-      // Handle the "none" value for productId
-      const productId = values.productId === "none" ? null : values.productId;
+      await addAppointmentToDb(values, user?.id);
       
-      const { data, error } = await supabase
-        .from("service_orders")
-        .insert({
-          title: values.title,
-          description: values.description || null,
-          customer_id: values.customerId,
-          customer_product_id: productId,
-          scheduled_date: values.scheduledDate.toISOString(),
-          status: values.status,
-          created_by: user?.id || null,
-        })
-        .select();
-
-      if (error) throw error;
-
       toast({
         title: "Agendamento adicionado",
         description: `${values.title} foi agendado com sucesso.`,
@@ -157,30 +87,11 @@ export const useAgendamentos = () => {
   };
 
   // Update existing appointment
-  const updateAgendamento = async (values) => {
+  const updateAgendamento = async (values: AppointmentFormValues) => {
     if (!values.id) return false;
     
     try {
-      // Handle the "none" value for productId
-      const productId = values.productId === "none" ? null : values.productId;
-      
-      const { error } = await supabase
-        .from("service_orders")
-        .update({
-          title: values.title,
-          description: values.description || null,
-          customer_id: values.customerId,
-          customer_product_id: productId,
-          scheduled_date: values.scheduledDate.toISOString(),
-          status: values.status,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", values.id);
-
-      if (error) {
-        console.error("Error updating agendamento:", error);
-        throw error;
-      }
+      await updateAppointmentInDb(values);
 
       toast({
         title: "Agendamento atualizado",
@@ -203,12 +114,7 @@ export const useAgendamentos = () => {
   // Delete appointment
   const deleteAgendamento = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("service_orders")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      await deleteAppointmentFromDb(id);
 
       toast({
         title: "Agendamento removido",
@@ -247,3 +153,5 @@ export const useAgendamentos = () => {
     setCurrentAgendamento
   };
 };
+
+export default useAgendamentos;
