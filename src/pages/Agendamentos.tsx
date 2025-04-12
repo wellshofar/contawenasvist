@@ -1,46 +1,21 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useAgendamentos } from "@/hooks/useAgendamentos";
-import { 
-  Table,
-  TableHeader,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-} from "@/components/ui/table";
-import { Calendar, Clock, Edit, Trash2, Plus, Filter, ListFilter, FileText, Printer, Download } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { 
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogDescription, 
 } from "@/components/ui/dialog";
 import { AgendamentoForm } from "@/components/agendamentos/AgendamentoForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import AgendamentoSearch from "@/components/agendamentos/AgendamentoSearch";
+import AgendamentoActions from "@/components/agendamentos/AgendamentoActions";
+import AgendamentoTable from "@/components/agendamentos/AgendamentoTable";
+import EmptyAgendamentos from "@/components/agendamentos/EmptyAgendamentos";
 import AgendamentoReportDialog from "@/components/relatorios/AgendamentoReportDialog";
-import { exportAppointmentsToCsv } from "@/hooks/agendamentos/agendamentoUtils";
 
 const statusColors = {
   pending: "bg-yellow-500",
@@ -111,64 +86,19 @@ const Agendamentos: React.FC = () => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
-        <div className="flex flex-col md:flex-row gap-4 md:items-center">
-          <div className="relative w-full md:w-64">
-            <Input
-              placeholder="Buscar agendamentos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-            <Filter className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          </div>
+        <AgendamentoSearch 
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+        />
 
-          <Select
-            value={statusFilter || ""}
-            onValueChange={(value) => setStatusFilter(value || null)}
-          >
-            <SelectTrigger className="w-full md:w-44">
-              <SelectValue placeholder="Filtrar por status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os status</SelectItem>
-              <SelectItem value="pending">Pendente</SelectItem>
-              <SelectItem value="confirmed">Confirmado</SelectItem>
-              <SelectItem value="completed">Concluído</SelectItem>
-              <SelectItem value="cancelled">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <FileText className="h-4 w-4" /> Relatórios
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setReportDialogOpen(true)}>
-                <FileText className="mr-2 h-4 w-4" />
-                Gerar relatório
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => window.print()}>
-                <Printer className="mr-2 h-4 w-4" />
-                Imprimir
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => exportAppointmentsToCsv(filteredAgendamentos, statusTranslations)}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Exportar CSV
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button onClick={handleNewAgendamento} className="gap-2">
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Agendamento
-          </Button>
-        </div>
+        <AgendamentoActions 
+          handleNewAgendamento={handleNewAgendamento}
+          setReportDialogOpen={setReportDialogOpen}
+          filteredAgendamentos={filteredAgendamentos}
+          statusTranslations={statusTranslations}
+        />
       </div>
 
       <Card>
@@ -181,78 +111,15 @@ const Agendamentos: React.FC = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
           ) : filteredAgendamentos.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Horário</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAgendamentos.map((agendamento) => {
-                    const date = new Date(agendamento.scheduledDate);
-                    return (
-                      <TableRow key={agendamento.id}>
-                        <TableCell className="font-medium">{agendamento.title}</TableCell>
-                        <TableCell>{agendamento.customerName}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                            {format(date, "dd/MM/yyyy", { locale: ptBR })}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
-                            {format(date, "HH:mm", { locale: ptBR })}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`${statusColors[agendamento.status]}`}>
-                            {statusTranslations[agendamento.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <ListFilter className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEdit(agendamento)}>
-                                <Edit className="h-4 w-4 mr-2" /> Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem 
-                                onClick={() => handleDelete(agendamento.id)}
-                                className="text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+            <AgendamentoTable 
+              agendamentos={filteredAgendamentos}
+              statusColors={statusColors}
+              statusTranslations={statusTranslations}
+              handleEdit={handleEdit}
+              handleDelete={handleDelete}
+            />
           ) : (
-            <div className="py-20 text-center">
-              <h3 className="text-lg font-medium mb-2">Nenhum agendamento encontrado</h3>
-              <p className="text-muted-foreground mb-6">Não há agendamentos para exibir com os filtros atuais.</p>
-              <Button onClick={handleNewAgendamento} variant="outline">
-                <Plus className="mr-2 h-4 w-4" />
-                Criar um novo agendamento
-              </Button>
-            </div>
+            <EmptyAgendamentos handleNewAgendamento={handleNewAgendamento} />
           )}
         </CardContent>
       </Card>
