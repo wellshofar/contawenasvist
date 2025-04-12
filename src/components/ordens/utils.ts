@@ -1,6 +1,7 @@
 
 import { ServiceOrder } from "@/types/supabase";
 import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 
 // Variable to cache customer names
 let customerCache = {};
@@ -73,6 +74,65 @@ export const getProductName = async (customerProductId: string | null): Promise<
     console.error("Error in getProductName:", error);
     return "Produto não encontrado";
   }
+};
+
+// React hook for customer name
+export const useCustomerName = (customerId: string) => {
+  const [name, setName] = useState<string>("Carregando...");
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const fetchName = async () => {
+      try {
+        const customerName = await getCustomerName(customerId);
+        if (isMounted) setName(customerName);
+      } catch (error) {
+        console.error("Error in useCustomerName:", error);
+        if (isMounted) setName("Cliente não encontrado");
+      }
+    };
+
+    fetchName();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [customerId]);
+
+  return name;
+};
+
+// React hook for product name
+export const useProductName = (customerProductId: string | null) => {
+  const [name, setName] = useState<string>(customerProductId ? "Carregando..." : "Nenhum produto");
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    if (!customerProductId) {
+      setName("Nenhum produto");
+      return;
+    }
+    
+    const fetchName = async () => {
+      try {
+        const productName = await getProductName(customerProductId);
+        if (isMounted) setName(productName);
+      } catch (error) {
+        console.error("Error in useProductName:", error);
+        if (isMounted) setName("Produto não encontrado");
+      }
+    };
+
+    fetchName();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [customerProductId]);
+
+  return name;
 };
 
 export const downloadExampleCSV = (orders: ServiceOrder[]) => {

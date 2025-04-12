@@ -4,12 +4,24 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ServiceOrder } from "@/types/supabase";
 import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getCustomerName, getProductName } from "./utils";
+import { useCustomerName, useProductName } from "./utils";
 
 interface OrdensTableProps {
   orders: ServiceOrder[];
   onOrderClick: (order: ServiceOrder) => void;
 }
+
+// Customer name component to handle async loading
+const CustomerName = ({ customerId }: { customerId: string }) => {
+  const name = useCustomerName(customerId);
+  return <>{name}</>;
+};
+
+// Product name component to handle async loading
+const ProductName = ({ customerProductId }: { customerProductId: string | null }) => {
+  const name = useProductName(customerProductId);
+  return <>{name}</>;
+};
 
 const OrdensTable: React.FC<OrdensTableProps> = ({ orders, onOrderClick }) => {
   return (
@@ -30,8 +42,8 @@ const OrdensTable: React.FC<OrdensTableProps> = ({ orders, onOrderClick }) => {
           orders.map((order) => (
             <TableRow key={order.id} onClick={() => onOrderClick(order)} className="cursor-pointer">
               <TableCell>{order.id}</TableCell>
-              <TableCell>{getCustomerName(order.customer_id)}</TableCell>
-              <TableCell>{getProductName(order.customer_product_id)}</TableCell>
+              <TableCell><CustomerName customerId={order.customer_id} /></TableCell>
+              <TableCell><ProductName customerProductId={order.customer_product_id} /></TableCell>
               <TableCell>{order.scheduled_date ? new Date(order.scheduled_date).toLocaleDateString("pt-BR") : "-"}</TableCell>
               <TableCell>{order.status}</TableCell>
               <TableCell>{order.assigned_to || "-"}</TableCell>
