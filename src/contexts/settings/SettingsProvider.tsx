@@ -41,10 +41,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
             variant: 'destructive',
           });
         } else if (userData) {
-          setUserSettings((prevSettings) => ({
-            ...prevSettings,
-            ...userData.settings,
-          }));
+          setUserSettings(prevSettings => {
+            // Only merge if the settings from the database is an object
+            const settingsFromDb = typeof userData.settings === 'object' ? userData.settings : {};
+            return {
+              ...prevSettings,
+              ...settingsFromDb,
+            };
+          });
         }
 
         // Fetch system settings (assuming user has permission)
@@ -62,10 +66,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
             variant: 'destructive',
           });
         } else if (systemData) {
-          setSystemSettings((prevSettings) => ({
-            ...prevSettings,
-            ...systemData.settings,
-          }));
+          setSystemSettings(prevSettings => {
+            // Only merge if the settings from the database is an object
+            const settingsFromDb = typeof systemData.settings === 'object' ? systemData.settings : {};
+            return {
+              ...prevSettings,
+              ...settingsFromDb,
+            };
+          });
         }
       } catch (error) {
         console.error('Unexpected error loading settings:', error);
