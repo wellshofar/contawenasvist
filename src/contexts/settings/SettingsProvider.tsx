@@ -41,10 +41,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
             variant: 'destructive',
           });
         } else if (userData) {
-          setUserSettings({
-            ...defaultUserSettings,
+          setUserSettings((prevSettings) => ({
+            ...prevSettings,
             ...userData.settings,
-          });
+          }));
         }
 
         // Fetch system settings (assuming user has permission)
@@ -62,10 +62,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
             variant: 'destructive',
           });
         } else if (systemData) {
-          setSystemSettings({
-            ...defaultSystemSettings,
+          setSystemSettings((prevSettings) => ({
+            ...prevSettings,
             ...systemData.settings,
-          });
+          }));
         }
       } catch (error) {
         console.error('Unexpected error loading settings:', error);
