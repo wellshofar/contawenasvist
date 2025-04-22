@@ -91,23 +91,31 @@ export const addAppointmentToDb = async (values: AppointmentFormValues, userId: 
 export const updateAppointmentInDb = async (values: AppointmentFormValues) => {
   if (!values.id) throw new Error("Appointment ID is required for updates");
   
-  // Handle the "none" value for productId
-  const productId = values.productId === "none" ? null : values.productId;
-  
-  const { error } = await supabase
-    .from("service_orders")
-    .update({
-      title: values.title,
-      description: values.description || null,
-      customer_id: values.customerId,
-      customer_product_id: productId,
-      scheduled_date: values.scheduledDate.toISOString(),
-      status: values.status,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", values.id);
+  try {
+    // Handle the "none" value for productId
+    const productId = values.productId === "none" ? null : values.productId;
+    
+    const { error } = await supabase
+      .from("service_orders")
+      .update({
+        title: values.title,
+        description: values.description || null,
+        customer_id: values.customerId,
+        customer_product_id: productId,
+        scheduled_date: values.scheduledDate.toISOString(),
+        status: values.status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", values.id);
 
-  if (error) throw error;
+    if (error) {
+      console.error("Error updating appointment:", error);
+      throw new Error(`Erro ao atualizar: ${error.message}`);
+    }
+  } catch (error) {
+    console.error("Unexpected error updating appointment:", error);
+    throw error;
+  }
 };
 
 export const deleteAppointmentFromDb = async (id: string) => {

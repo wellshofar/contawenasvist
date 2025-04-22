@@ -100,11 +100,11 @@ export const useAgendamentos = () => {
       
       await fetchAgendamentos();
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating agendamento:", error);
       toast({
         title: "Erro ao atualizar agendamento",
-        description: "Não foi possível atualizar o agendamento.",
+        description: error.message || "Não foi possível atualizar o agendamento.",
         variant: "destructive",
       });
       return false;
