@@ -95,7 +95,15 @@ export const updateAppointmentInDb = async (values: AppointmentFormValues) => {
     // Handle the "none" value for productId
     const productId = values.productId === "none" ? null : values.productId;
     
-    const { error } = await supabase
+    // Log values for debugging
+    console.log("Atualizando agendamento:", {
+      id: values.id,
+      title: values.title,
+      status: values.status,
+      scheduledDate: values.scheduledDate.toISOString()
+    });
+    
+    const { data, error } = await supabase
       .from("service_orders")
       .update({
         title: values.title,
@@ -106,14 +114,17 @@ export const updateAppointmentInDb = async (values: AppointmentFormValues) => {
         status: values.status,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", values.id);
+      .eq("id", values.id)
+      .select();
 
     if (error) {
-      console.error("Error updating appointment:", error);
+      console.error("Erro ao atualizar agendamento:", error);
       throw new Error(`Erro ao atualizar: ${error.message}`);
     }
+    
+    return data;
   } catch (error) {
-    console.error("Unexpected error updating appointment:", error);
+    console.error("Erro inesperado ao atualizar agendamento:", error);
     throw error;
   }
 };

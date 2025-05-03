@@ -52,7 +52,7 @@ export const useAgendamentos = () => {
       
       setAgendamentos(mappedAgendamentos);
     } catch (error) {
-      console.error("Error fetching agendamentos:", error);
+      console.error("Erro ao carregar agendamentos:", error);
       toast({
         title: "Erro ao carregar agendamentos",
         description: "Não foi possível carregar a lista de agendamentos.",
@@ -76,7 +76,7 @@ export const useAgendamentos = () => {
       await fetchAgendamentos();
       return true;
     } catch (error) {
-      console.error("Error adding agendamento:", error);
+      console.error("Erro ao adicionar agendamento:", error);
       toast({
         title: "Erro ao salvar agendamento",
         description: "Não foi possível salvar o agendamento.",
@@ -91,6 +91,9 @@ export const useAgendamentos = () => {
     if (!values.id) return false;
     
     try {
+      // Log values for debugging
+      console.log("Enviando atualização:", values);
+      
       await updateAppointmentInDb(values);
 
       toast({
@@ -101,7 +104,7 @@ export const useAgendamentos = () => {
       await fetchAgendamentos();
       return true;
     } catch (error: any) {
-      console.error("Error updating agendamento:", error);
+      console.error("Erro ao atualizar agendamento:", error);
       toast({
         title: "Erro ao atualizar agendamento",
         description: error.message || "Não foi possível atualizar o agendamento.",
@@ -124,7 +127,7 @@ export const useAgendamentos = () => {
       await fetchAgendamentos();
       return true;
     } catch (error) {
-      console.error("Error deleting agendamento:", error);
+      console.error("Erro ao remover agendamento:", error);
       toast({
         title: "Erro ao remover agendamento",
         description: "Não foi possível remover o agendamento.",
