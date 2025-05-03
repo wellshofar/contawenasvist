@@ -22,12 +22,12 @@ export const useProfileData = () => {
       
       setIsLoading(true);
       try {
-        // Fetch profile data
+        // Use maybeSingle instead of single to avoid errors when no profile is found
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
           
         if (profileError) {
           console.error("Error fetching profile data:", profileError);
