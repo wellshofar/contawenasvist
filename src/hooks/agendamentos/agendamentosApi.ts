@@ -16,7 +16,10 @@ export const fetchAppointmentsData = async () => {
       status,
       scheduled_date,
       assigned_to,
-      customers(name)
+      customers(
+        name,
+        city
+      )
     `)
     .not('scheduled_date', 'is', null)
     .order('scheduled_date', { ascending: false });

@@ -47,6 +47,7 @@ const Agendamentos: React.FC = () => {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [cityFilter, setCityFilter] = useState<string | null>(null);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   const handleEdit = (agendamento) => {
@@ -75,7 +76,10 @@ const Agendamentos: React.FC = () => {
     
     const matchesStatus = statusFilter === null || statusFilter === "all" || agendamento.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    const matchesCity = cityFilter === null || cityFilter === "all" || 
+      (agendamento.customerCity && agendamento.customerCity.toLowerCase() === cityFilter.toLowerCase());
+    
+    return matchesSearch && matchesStatus && matchesCity;
   });
 
   return (
@@ -91,6 +95,8 @@ const Agendamentos: React.FC = () => {
           setSearchTerm={setSearchTerm}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
+          cityFilter={cityFilter}
+          setCityFilter={setCityFilter}
         />
 
         <AgendamentoActions 

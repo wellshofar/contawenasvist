@@ -3,20 +3,27 @@ import { Appointment } from "@/types/agendamentos";
 
 export const mapServiceOrdersToAppointments = (
   serviceOrders: any[], 
-  productData: Record<string, any>, 
-  technicianData: Record<string, any>
+  productData: any = {}, 
+  technicianData: any = {}
 ): Appointment[] => {
-  return serviceOrders.map(order => ({
-    id: order.id,
-    title: order.title,
-    description: order.description || '',
-    customerId: order.customer_id,
-    customerName: order.customers?.name || 'Cliente não informado',
-    productId: order.customer_product_id ? productData[order.customer_product_id]?.productId : null,
-    productName: order.customer_product_id ? productData[order.customer_product_id]?.productName : null,
-    scheduledDate: order.scheduled_date,
-    assignedToId: order.assigned_to,
-    assignedToName: order.assigned_to ? technicianData[order.assigned_to] : null,
-    status: order.status || 'pending'
-  })) as Appointment[];
+  if (!serviceOrders) return [];
+  
+  return serviceOrders.map(order => {
+    const customerProduct = order.customer_product_id ? productData[order.customer_product_id] : null;
+    
+    return {
+      id: order.id,
+      title: order.title,
+      description: order.description || "",
+      customerId: order.customer_id,
+      customerName: order.customers?.name || "Cliente não encontrado",
+      customerCity: order.customers?.city || "",
+      productId: order.customer_product_id || null,
+      productName: customerProduct?.productName || "",
+      status: order.status || "pending",
+      scheduledDate: order.scheduled_date ? new Date(order.scheduled_date) : new Date(),
+      technicianId: order.assigned_to || null,
+      technicianName: order.assigned_to ? technicianData[order.assigned_to] || "Técnico não encontrado" : null
+    };
+  });
 };

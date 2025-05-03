@@ -1,25 +1,16 @@
 
 import React from "react";
+import { Appointment } from "@/types/agendamentos";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Edit, Trash2, ListFilter } from "lucide-react";
-import { Appointment } from "@/types/agendamentos";
-import { 
-  Table,
-  TableHeader,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell 
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { MoreVertical } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 interface AgendamentoTableProps {
@@ -35,71 +26,64 @@ const AgendamentoTable: React.FC<AgendamentoTableProps> = ({
   statusColors,
   statusTranslations,
   handleEdit,
-  handleDelete
+  handleDelete,
 }) => {
-  if (agendamentos.length === 0) return null;
-  
+  const formatDate = (date: Date) => {
+    return format(date, "dd/MM/yyyy HH:mm", { locale: ptBR });
+  };
+
   return (
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Título</TableHead>
-            <TableHead>Cliente</TableHead>
             <TableHead>Data</TableHead>
-            <TableHead>Horário</TableHead>
+            <TableHead>Cliente</TableHead>
+            <TableHead>Cidade</TableHead>
+            <TableHead>Título</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Ações</TableHead>
+            <TableHead>Produto</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {agendamentos.map((agendamento) => {
-            const date = new Date(agendamento.scheduledDate);
-            return (
-              <TableRow key={agendamento.id}>
-                <TableCell className="font-medium">{agendamento.title}</TableCell>
-                <TableCell>{agendamento.customerName}</TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                    {format(date, "dd/MM/yyyy", { locale: ptBR })}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
-                    {format(date, "HH:mm", { locale: ptBR })}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge className={`${statusColors[agendamento.status]}`}>
-                    {statusTranslations[agendamento.status]}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <ListFilter className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(agendamento)}>
-                        <Edit className="h-4 w-4 mr-2" /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={() => handleDelete(agendamento.id)}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+          {agendamentos.map((agendamento) => (
+            <TableRow key={agendamento.id}>
+              <TableCell className="font-medium">
+                {formatDate(agendamento.scheduledDate)}
+              </TableCell>
+              <TableCell>{agendamento.customerName}</TableCell>
+              <TableCell>{agendamento.customerCity || "-"}</TableCell>
+              <TableCell>{agendamento.title}</TableCell>
+              <TableCell>
+                <Badge className={`${statusColors[agendamento.status]}`}>
+                  {statusTranslations[agendamento.status] || agendamento.status}
+                </Badge>
+              </TableCell>
+              <TableCell>{agendamento.productName || "-"}</TableCell>
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="p-1 rounded-md hover:bg-gray-100">
+                      <MoreVertical className="h-4 w-4 text-gray-500" />
+                      <span className="sr-only">Abrir menu</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleEdit(agendamento)}>
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleDelete(agendamento.id)}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </div>
