@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Customer, Product, CustomerProduct } from "@/types/supabase";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Edit } from "lucide-react";
 import { 
   Table,
   TableBody,
@@ -63,6 +63,14 @@ const OrdemServicoForm: React.FC = () => {
   const [customerProducts, setCustomerProducts] = useState<CustomerProductWithDetails[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [editMode, setEditMode] = useState(false);
+  const [templateText, setTemplateText] = useState<string>(
+    "Detalhes do atendimento:\n\n" +
+    "1. Procedimentos realizados:\n\n\n" +
+    "2. Peças substituídas:\n\n\n" +
+    "3. Recomendações técnicas:\n\n\n" +
+    "4. Observações adicionais:"
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -137,6 +145,11 @@ const OrdemServicoForm: React.FC = () => {
     setSelectedProducts(selectedProducts.filter(id => id !== productId));
   };
 
+  // Handle template edit mode toggle
+  const toggleEditMode = () => {
+    setEditMode(!editMode);
+  };
+
   // Submit the form
   const onSubmit = async (values: FormValues) => {
     if (selectedProducts.length === 0) {
@@ -153,7 +166,7 @@ const OrdemServicoForm: React.FC = () => {
       // Create one service order for each selected product
       const ordersToCreate = selectedProducts.map(productId => ({
         title: values.title,
-        description: values.description || null,
+        description: templateText || values.description || null,
         customer_id: values.customerId,
         customer_product_id: productId,
         status: values.status,
@@ -221,22 +234,33 @@ const OrdemServicoForm: React.FC = () => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Descreva o serviço a ser realizado" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <FormLabel>Template da Ordem de Serviço</FormLabel>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={toggleEditMode} 
+                    className="flex items-center gap-1"
+                  >
+                    {editMode ? "Salvar" : <><Edit className="h-4 w-4" /> Editar</>}
+                  </Button>
+                </div>
+                
+                {editMode ? (
+                  <Textarea 
+                    value={templateText}
+                    onChange={(e) => setTemplateText(e.target.value)}
+                    rows={10}
+                    className="font-mono"
+                  />
+                ) : (
+                  <div className="border rounded-md p-3 whitespace-pre-wrap bg-muted/30">
+                    {templateText}
+                  </div>
                 )}
-              />
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField

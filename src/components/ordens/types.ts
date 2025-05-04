@@ -132,9 +132,14 @@ export interface SignatureFieldProps {
 }
 
 // Helper function to format dates consistently
-export const formatDate = (date: string | Date): string => {
-  if (!date) return '';
+export const formatDate = (date: string | Date | null): string => {
+  if (!date) return '-';
   
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('pt-BR');
+  try {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return d.toLocaleDateString('pt-BR');
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return '-';
+  }
 };

@@ -46,27 +46,35 @@ const OrdensDashboard: React.FC = () => {
     
     fetchOrders();
   }, []);
-  
-  const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value;
-    setSearchTerm(term);
-    
-    if (!term) {
-      setFilteredOrders(allOrders);
-      return;
+
+  // We need to refresh orders when returning from order view/form
+  useEffect(() => {
+    if (!showOrderView && !showOrderForm) {
+      const fetchOrders = async () => {
+        try {
+          const { data, error } = await supabase
+            .from("service_orders")
+            .select("*")
+            .order("created_at", { ascending: false });
+            
+          if (error) {
+            console.error("Error fetching orders:", error);
+            return;
+          }
+          
+          if (data) {
+            setAllOrders(data);
+            setFilteredOrders(data);
+          }
+        } catch (error) {
+          console.error("Error in fetchOrders:", error);
+        }
+      };
+      
+      fetchOrders();
     }
-    
-    const filtered = allOrders.filter(async (order) => {
-      const customerName = await getCustomerName(order.customer_id);
-      return order.id.toLowerCase().includes(term.toLowerCase()) ||
-             order.title.toLowerCase().includes(term.toLowerCase()) ||
-             (customerName && customerName.toLowerCase().includes(term.toLowerCase()));
-    });
-    
-    setFilteredOrders(filtered);
-  };
+  }, [showOrderView, showOrderForm]);
   
-  // Updated search function that doesn't use async/await in filter
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
@@ -99,6 +107,7 @@ const OrdensDashboard: React.FC = () => {
   const handleNewOrder = () => {
     setShowOrderForm(true);
     setShowOrderView(false);
+    setSelectedOrder(null);
   };
   
   const handleCloseOrderForm = () => {
@@ -149,7 +158,7 @@ const OrdensDashboard: React.FC = () => {
           onBack={handleCloseOrderView}
         />
       ) : showOrderForm ? (
-        <OrdemServicoForm />
+        <OrdemServicoForm onCancel={handleCloseOrderForm} />
       ) : null}
     </div>
   );

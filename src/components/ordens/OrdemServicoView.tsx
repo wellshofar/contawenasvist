@@ -1,6 +1,10 @@
 
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { OrdemServicoViewProps } from "./types";
 import OrderHeader from "./OrderHeader";
 import OrderHeaderPrint from "./OrderHeaderPrint";
@@ -13,6 +17,7 @@ import FooterInfo from "./FooterInfo";
 import PrintStyles from "./PrintStyles";
 import { generateServiceOrderPDF } from "./PdfGenerator";
 import { ServiceOrder, Customer, Product, CustomerProduct } from "@/types/supabase";
+import { Edit, Save } from "lucide-react";
 
 const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
   order,
@@ -22,6 +27,11 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
   serviceItems,
   onBack
 }) => {
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedDescription, setEditedDescription] = useState(order.description || "");
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
     // Ensure the content is loaded before allowing print
     document.body.classList.add('print-ready');
@@ -84,6 +94,12 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
         };
       }
 
+      // Only proceed if we have a product
+      if (!product) {
+        console.error("Cannot generate PDF: Product is undefined");
+        return;
+      }
+
       const completeProduct: Product = {
         id: product.id || '', // Add missing id property with default
         name: product.name,
@@ -107,6 +123,80 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
       console.error("Error generating PDF:", error);
     }
   };
+
+  const handleToggleEdit = () => {
+    setIsEditing(!isEditing);
+  };
+
+  const handleSaveDescription = async () => {
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("service_orders")
+        .update({ description: editedDescription })
+        .eq("id", order.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Sucesso",
+        description: "Ordem de serviço atualizada com sucesso.",
+      });
+
+      // Update the local order object
+      order.description = editedDescription;
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating service order:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a ordem de serviço.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Component for the editable description
+  const OrderDescription = () => (
+    <div className="mb-6 border-b pb-4 print:mb-4">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="font-bold text-lg">Detalhes do Atendimento</h2>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={isEditing ? handleSaveDescription : handleToggleEdit}
+          className="flex items-center gap-1 print:hidden"
+          disabled={isSaving}
+        >
+          {isEditing ? (
+            <>
+              <Save className="h-4 w-4" />
+              {isSaving ? "Salvando..." : "Salvar"}
+            </>
+          ) : (
+            <>
+              <Edit className="h-4 w-4" />
+              Editar
+            </>
+          )}
+        </Button>
+      </div>
+      
+      {isEditing ? (
+        <Textarea
+          value={editedDescription}
+          onChange={(e) => setEditedDescription(e.target.value)}
+          className="min-h-[200px] font-mono print:hidden"
+        />
+      ) : (
+        <div className="whitespace-pre-wrap">
+          {editedDescription || "Nenhum detalhe informado."}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <>
@@ -132,6 +222,9 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
 
               {/* Product Info */}
               {product && <ProductInfo product={product} customerProduct={customerProduct} />}
+
+              {/* Order Description (Editable) */}
+              <OrderDescription />
 
               {/* Service Items */}
               <ServiceItems serviceItems={serviceItems} />
