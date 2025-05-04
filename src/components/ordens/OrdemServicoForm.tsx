@@ -3,61 +3,19 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Customer, Product, CustomerProduct } from "@/types/supabase";
-import { Plus, Trash2, Edit } from "lucide-react";
-import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Form } from "@/components/ui/form";
+import { Customer } from "@/types/supabase";
 
-// Define the form schema
-const formSchema = z.object({
-  title: z.string().min(3, { message: "O título deve ter pelo menos 3 caracteres" }),
-  description: z.string().optional(),
-  customerId: z.string({ required_error: "Selecione um cliente" }),
-  status: z.string().default("pending"),
-  scheduledDate: z.string().optional(),
-  // We'll handle products separately as they can be multiple
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-// Define a type for customer products with joined product data
-type CustomerProductWithDetails = CustomerProduct & {
-  product?: Product;
-};
-
-// Add props interface to accept onCancel
-interface OrdemServicoFormProps {
-  onCancel?: () => void;
-}
+// Import our new components and types
+import { formSchema, FormValues, CustomerProductWithDetails, OrdemServicoFormProps } from "./forms/types";
+import TemplateEditor from "./forms/TemplateEditor";
+import ProductSelector from "./forms/ProductSelector";
+import OrderFormFields from "./forms/OrderFormFields";
+import { fetchCustomers, fetchCustomerProducts, createServiceOrders } from "./services/orderService";
 
 const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
   const navigate = useNavigate();
@@ -86,56 +44,26 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
     },
   });
 
-  // Fetch customers
-  const fetchCustomers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("customers")
-        .select("*")
-        .order("name");
-      
-      if (error) throw error;
-      if (data) setCustomers(data);
-    } catch (error) {
-      console.error("Error fetching customers:", error);
-      toast({
-        title: "Erro ao carregar clientes",
-        description: "Não foi possível carregar a lista de clientes.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Fetch customer products when a customer is selected
-  const fetchCustomerProducts = async (customerId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("customer_products")
-        .select(`
-          *,
-          product:product_id(id, name, model)
-        `)
-        .eq("customer_id", customerId);
-      
-      if (error) throw error;
-      if (data) {
-        const formattedData = data.map(item => ({
-          ...item,
-          product: item.product as unknown as Product
-        }));
-        setCustomerProducts(formattedData as CustomerProductWithDetails[]);
-      }
-    } catch (error) {
-      console.error("Error fetching customer products:", error);
-    }
-  };
-
   // Handle customer selection
   const handleCustomerChange = (value: string) => {
     setSelectedCustomer(value);
     form.setValue("customerId", value);
     setSelectedProducts([]); // Reset product selection
-    fetchCustomerProducts(value);
+    loadCustomerProducts(value);
+  };
+
+  // Load customer products
+  const loadCustomerProducts = async (customerId: string) => {
+    try {
+      const data = await fetchCustomerProducts(customerId);
+      setCustomerProducts(data);
+    } catch (error) {
+      toast({
+        title: "Erro ao carregar produtos",
+        description: "Não foi possível carregar os produtos deste cliente.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle product selection
@@ -179,12 +107,7 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
         created_by: user?.id || null,
       }));
 
-      const { data, error } = await supabase
-        .from("service_orders")
-        .insert(ordersToCreate)
-        .select();
-
-      if (error) throw error;
+      await createServiceOrders(ordersToCreate, user?.id);
 
       toast({
         title: "Ordens de serviço criadas",
@@ -205,9 +128,23 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
     }
   };
 
+  // Load customers on component mount
   useEffect(() => {
-    fetchCustomers();
-  }, []);
+    const loadCustomers = async () => {
+      try {
+        const data = await fetchCustomers();
+        setCustomers(data);
+      } catch (error) {
+        toast({
+          title: "Erro ao carregar clientes",
+          description: "Não foi possível carregar a lista de clientes.",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    loadCustomers();
+  }, [toast]);
 
   // Handle cancel - use the provided onCancel prop if available, otherwise navigate back
   const handleCancel = () => {
@@ -234,180 +171,30 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Título</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Manutenção de Produto" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              <OrderFormFields 
+                form={form}
+                customers={customers}
+                onCustomerChange={handleCustomerChange}
               />
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <FormLabel>Template da Ordem de Serviço</FormLabel>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={toggleEditMode} 
-                    className="flex items-center gap-1"
-                  >
-                    {editMode ? "Salvar" : <><Edit className="h-4 w-4" /> Editar</>}
-                  </Button>
+              <TemplateEditor
+                templateText={templateText}
+                editMode={editMode}
+                onTemplateChange={setTemplateText}
+                onToggleEditMode={toggleEditMode}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  {/* This is intentionally empty to maintain grid layout */}
                 </div>
                 
-                {editMode ? (
-                  <Textarea 
-                    value={templateText}
-                    onChange={(e) => setTemplateText(e.target.value)}
-                    rows={10}
-                    className="font-mono"
-                  />
-                ) : (
-                  <div className="border rounded-md p-3 whitespace-pre-wrap bg-muted/30">
-                    {templateText}
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="customerId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cliente</FormLabel>
-                      <Select
-                        onValueChange={handleCustomerChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um cliente" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {customers.map((customer) => (
-                            <SelectItem key={customer.id} value={customer.id}>
-                              {customer.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div>
-                  <FormLabel>Produtos</FormLabel>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Select
-                      disabled={!selectedCustomer}
-                      onValueChange={handleAddProduct}
-                      value=""
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Adicionar produto" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {customerProducts.map((cp) => (
-                          <SelectItem 
-                            key={cp.id} 
-                            value={cp.id}
-                            disabled={selectedProducts.includes(cp.id)}
-                          >
-                            {cp.product?.name} - {cp.product?.model}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  {selectedProducts.length > 0 ? (
-                    <div className="border rounded-md mt-2">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Produto</TableHead>
-                            <TableHead className="w-[100px]">Ações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {selectedProducts.map(productId => {
-                            const product = customerProducts.find(cp => cp.id === productId);
-                            return (
-                              <TableRow key={productId}>
-                                <TableCell>
-                                  {product?.product?.name} - {product?.product?.model}
-                                </TableCell>
-                                <TableCell>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleRemoveProduct(productId)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground mt-2">
-                      {selectedCustomer ? "Nenhum produto selecionado" : "Selecione um cliente primeiro"}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="pending">Pendente</SelectItem>
-                          <SelectItem value="scheduled">Agendado</SelectItem>
-                          <SelectItem value="in_progress">Em Andamento</SelectItem>
-                          <SelectItem value="completed">Concluído</SelectItem>
-                          <SelectItem value="canceled">Cancelado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="scheduledDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Data Agendada</FormLabel>
-                      <FormControl>
-                        <Input type="datetime-local" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                <ProductSelector
+                  selectedCustomer={selectedCustomer}
+                  customerProducts={customerProducts}
+                  selectedProducts={selectedProducts}
+                  onAddProduct={handleAddProduct}
+                  onRemoveProduct={handleRemoveProduct}
                 />
               </div>
 
