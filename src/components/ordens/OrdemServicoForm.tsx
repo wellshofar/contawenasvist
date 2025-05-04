@@ -54,7 +54,12 @@ type CustomerProductWithDetails = CustomerProduct & {
   product?: Product;
 };
 
-const OrdemServicoForm: React.FC = () => {
+// Add props interface to accept onCancel
+interface OrdemServicoFormProps {
+  onCancel?: () => void;
+}
+
+const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -204,11 +209,20 @@ const OrdemServicoForm: React.FC = () => {
     fetchCustomers();
   }, []);
 
+  // Handle cancel - use the provided onCancel prop if available, otherwise navigate back
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      navigate("/ordens");
+    }
+  };
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Nova Ordem de Serviço</h1>
-        <Button variant="outline" onClick={() => navigate("/ordens")}>
+        <Button variant="outline" onClick={handleCancel}>
           Cancelar
         </Button>
       </div>
@@ -401,7 +415,7 @@ const OrdemServicoForm: React.FC = () => {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => navigate("/ordens")}
+                  onClick={handleCancel}
                 >
                   Cancelar
                 </Button>
