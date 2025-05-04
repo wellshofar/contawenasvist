@@ -68,17 +68,21 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
         created_by: customer.created_by || null // Add missing created_by property with default
       };
 
-      const completeCustomerProduct: CustomerProduct = {
-        id: customerProduct.id,
-        customer_id: customerProduct.customer_id,
-        product_id: customerProduct.product_id,
-        installation_date: customerProduct.installation_date,
-        next_maintenance_date: customerProduct.next_maintenance_date,
-        notes: customerProduct.notes,
-        created_at: customerProduct.created_at,
-        updated_at: customerProduct.updated_at,
-        created_by: customerProduct.created_by
-      };
+      let completeCustomerProduct: CustomerProduct | null = null;
+      
+      if (customerProduct) {
+        completeCustomerProduct = {
+          id: customerProduct.id,
+          customer_id: customerProduct.customer_id,
+          product_id: customerProduct.product_id,
+          installation_date: customerProduct.installation_date,
+          next_maintenance_date: customerProduct.next_maintenance_date,
+          notes: customerProduct.notes,
+          created_at: customerProduct.created_at,
+          updated_at: customerProduct.updated_at,
+          created_by: customerProduct.created_by
+        };
+      }
 
       const completeProduct: Product = {
         id: product.id || '', // Add missing id property with default
@@ -90,6 +94,12 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
         updated_at: product.updated_at || '', // Add missing updated_at property with default
         created_by: product.created_by || null // Add missing created_by property with default
       };
+
+      // Only proceed if we have a valid customerProduct
+      if (!completeCustomerProduct) {
+        console.error("Cannot generate PDF: Customer product is undefined");
+        return;
+      }
 
       const doc = generateServiceOrderPDF(completeOrder, completeCustomer, completeCustomerProduct, completeProduct, serviceItems);
       doc.save(`ordem_servico_${order.id}.pdf`);
@@ -121,7 +131,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
               <CustomerInfo customer={customer} />
 
               {/* Product Info */}
-              <ProductInfo product={product} customerProduct={customerProduct} />
+              {product && <ProductInfo product={product} customerProduct={customerProduct} />}
 
               {/* Service Items */}
               <ServiceItems serviceItems={serviceItems} />

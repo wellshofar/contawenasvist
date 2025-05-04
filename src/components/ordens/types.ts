@@ -54,7 +54,8 @@ export interface ProductInfoProps {
   };
   customerProduct: {
     installation_date: string | null;
-  };
+    next_maintenance_date?: string | null;
+  } | null;
 }
 
 export interface OrderHeaderProps {
@@ -104,7 +105,7 @@ export interface OrdemServicoViewProps {
     created_at?: string;
     updated_at?: string;
     created_by?: string | null;
-  };
+  } | null;
   customerProduct: {
     id: string;
     installation_date: string | null;
@@ -115,7 +116,7 @@ export interface OrdemServicoViewProps {
     created_at: string;
     updated_at: string;
     created_by: string | null;
-  };
+  } | null;
   serviceItems: ServiceItem[];
   onBack: () => void;
 }

@@ -5,21 +5,22 @@ import { formatDate } from "./types";
 
 interface OrderHeaderPrintProps {
   order: ServiceOrder;
-  customerProduct: CustomerProduct;
+  customerProduct: CustomerProduct | null;
 }
 
 const OrderHeaderPrint: React.FC<OrderHeaderPrintProps> = ({ order, customerProduct }) => {
   return (
-    <div className="border-b pb-4 mb-4 text-center">
-      <h1 className="text-2xl font-bold">{order.title}</h1>
-      <p className="text-lg">Número da OS: {order.id}</p>
-      {order.scheduled_date && (
-        <p className="text-sm text-muted-foreground">
-          Vencimento da O.S.: {new Date(order.scheduled_date).toLocaleDateString("pt-BR")}
-          {" - "}
-          {new Date(order.scheduled_date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-        </p>
-      )}
+    <div className="mb-6">
+      <div className="flex justify-between border-b pb-4">
+        <div>
+          <h1 className="text-2xl font-bold">Ordem de Serviço</h1>
+          <p className="text-sm text-gray-500">Nº {order.id}</p>
+        </div>
+        <div className="text-right">
+          <p className="font-semibold">Data: {formatDate(order.created_at)}</p>
+          <p>Status: {order.status}</p>
+        </div>
+      </div>
     </div>
   );
 };

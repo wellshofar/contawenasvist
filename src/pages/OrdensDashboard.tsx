@@ -133,10 +133,19 @@ const OrdensDashboard: React.FC = () => {
       ) : showOrderView && selectedOrder ? (
         <OrdemServicoView 
           order={selectedOrder}
-          customer={mockCustomers.find(c => c.id === selectedOrder.customer_id)!}
-          customerProduct={mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id)!}
-          product={mockProducts.find(p => p.id === mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id)?.product_id)!}
-          serviceItems={mockServiceItems.filter(item => item.productId === mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id)?.product_id)}
+          customer={mockCustomers.find(c => c.id === selectedOrder.customer_id) || mockCustomers[0]}
+          customerProduct={selectedOrder.customer_product_id ? 
+            mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id) || null : null}
+          product={selectedOrder.customer_product_id ? 
+            mockProducts.find(p => {
+              const customerProduct = mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id);
+              return customerProduct && p.id === customerProduct.product_id;
+            }) || null : null}
+          serviceItems={selectedOrder.customer_product_id ? 
+            mockServiceItems.filter(item => {
+              const customerProduct = mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id);
+              return customerProduct && item.productId === customerProduct.product_id;
+            }) : []}
           onBack={handleCloseOrderView}
         />
       ) : showOrderForm ? (
