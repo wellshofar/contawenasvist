@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UseFormReturn } from "react-hook-form";
 import { EvolutionApiFormValues } from "./EvolutionApiSchema";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface TestMessageSectionProps {
   form: UseFormReturn<EvolutionApiFormValues>;
@@ -19,14 +20,18 @@ const TestMessageSection: React.FC<TestMessageSectionProps> = ({
   onTestMessage 
 }) => {
   const [testSent, setTestSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleTestMessage = async () => {
     setTestSent(false);
+    setError(null);
+    
     try {
       await onTestMessage();
       setTestSent(true);
-    } catch (error) {
-      console.error("Erro ao enviar mensagem de teste:", error);
+    } catch (err) {
+      console.error("Erro ao enviar mensagem de teste:", err);
+      setError("Falha ao enviar mensagem. Verifique o console para mais detalhes.");
     }
   };
 
@@ -49,6 +54,15 @@ const TestMessageSection: React.FC<TestMessageSectionProps> = ({
           </FormItem>
         )}
       />
+      
+      {error && (
+        <Alert variant="destructive" className="mt-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Erro</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
       <div className="mt-4">
         <Button 
           type="button" 

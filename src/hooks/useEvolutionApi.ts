@@ -66,11 +66,11 @@ export const useEvolutionApi = () => {
       }
       
       console.log(`Sending WhatsApp to formatted number: ${phoneNumber}`);
-      console.log(`Using Evolution API: ${apiBaseUrl}/${instanceName}`);
+      console.log(`Using Evolution API: ${apiBaseUrl}/v1/instance/${instanceName}/message/text`);
       
-      // Try direct API call first
+      // Tentar com o endpoint correto da Evolution API (v1/instance/{instance_name}/message/text)
       try {
-        const response = await fetch(`${apiBaseUrl}/message/text/${instanceName}`, {
+        const response = await fetch(`${apiBaseUrl}/v1/instance/${instanceName}/message/text`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -78,18 +78,25 @@ export const useEvolutionApi = () => {
           },
           body: JSON.stringify({
             number: phoneNumber,
-            text: "Teste de integração da Evolution API com o sistema HOKEN. Se você recebeu esta mensagem, a integração está funcionando corretamente!"
+            options: {
+              delay: 1200
+            },
+            textMessage: {
+              text: "Teste de integração da Evolution API com o sistema HOKEN. Se você recebeu esta mensagem, a integração está funcionando corretamente!"
+            }
           })
         });
         
         if (!response.ok) {
           const errorResult = await response.text();
           console.error("WhatsApp API error response:", errorResult);
+          
+          // Tentar endpoint alternativo se o primeiro falhar
           throw new Error(`WhatsApp API error: ${errorResult}`);
         }
         
         const result = await response.json();
-        console.log("WhatsApp direct API response:", result);
+        console.log("WhatsApp API response:", result);
         
         toast({
           title: "Mensagem enviada",
@@ -99,37 +106,67 @@ export const useEvolutionApi = () => {
         return;
       } catch (directError) {
         console.error("Erro ao enviar mensagem diretamente:", directError);
-        // Fall through to fallback method
+        
+        // Tentar endpoint alternativo
+        try {
+          console.log("Tentando endpoint alternativo...");
+          const altResponse = await fetch(`${apiBaseUrl}/message/sendText/${instanceName}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": apiToken
+            },
+            body: JSON.stringify({
+              number: phoneNumber,
+              text: "Teste de integração da Evolution API com o sistema HOKEN. Se você recebeu esta mensagem, a integração está funcionando corretamente!"
+            })
+          });
+          
+          if (!altResponse.ok) {
+            const altErrorResult = await altResponse.text();
+            console.error("WhatsApp API alt endpoint error:", altErrorResult);
+            throw new Error(`WhatsApp API error (alt endpoint): ${altErrorResult}`);
+          }
+          
+          const altResult = await altResponse.json();
+          console.log("WhatsApp alt endpoint response:", altResult);
+          
+          toast({
+            title: "Mensagem enviada",
+            description: `Uma mensagem de teste foi enviada para o número ${testNumber} (endpoint alternativo).`,
+          });
+          
+          return;
+        } catch (altError) {
+          console.error("Erro ao enviar via endpoint alternativo:", altError);
+          // Fall through to fallback method
+        }
       }
       
       // Fallback to using the Supabase function
-      console.log("Tentando enviar via API local...");
-      const fallbackUrl = `${window.location.origin}/api/send-notification`;
-      console.log("Fallback URL:", fallbackUrl);
+      console.log("Tentando enviar via função do Supabase...");
       
-      const response = await fetch(fallbackUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
+      // Use the Supabase client directly instead of local API
+      const { supabase } = await import("@/integrations/supabase/client");
+      
+      const { data, error } = await supabase.functions.invoke("send-notification", {
+        body: {
           type: "whatsapp",
           to: phoneNumber,
           message: "Teste de integração da Evolution API com o sistema HOKEN. Se você recebeu esta mensagem, a integração está funcionando corretamente!",
-        })
+        }
       });
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API error: ${errorText}`);
+      if (error) {
+        console.error("Erro ao invocar função do Supabase:", error);
+        throw error;
       }
       
-      const result = await response.json();
-      console.log("Send notification response:", result);
+      console.log("Supabase function response:", data);
       
       toast({
         title: "Mensagem enviada",
-        description: `Uma mensagem de teste foi enviada para o número ${testNumber}.`,
+        description: `Uma mensagem de teste foi enviada para o número ${testNumber} via função do Supabase.`,
       });
       
     } catch (error) {
