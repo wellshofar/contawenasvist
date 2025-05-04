@@ -1,6 +1,7 @@
 
 import React from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
@@ -8,13 +9,15 @@ import { Form } from "@/components/ui/form";
 import ApiConfigFields from "./evolution/ApiConfigFields";
 import TestMessageSection from "./evolution/TestMessageSection";
 import { useEvolutionApi } from "@/hooks/useEvolutionApi";
-import { EvolutionApiFormValues } from "./evolution/EvolutionApiSchema";
+import { EvolutionApiFormValues, evolutionApiFormSchema } from "./evolution/EvolutionApiSchema";
 
 const EvolutionApiForm: React.FC = () => {
   const { isLoading, saveSettings, sendTestMessage, defaultValues } = useEvolutionApi();
   
   const form = useForm<EvolutionApiFormValues>({
-    defaultValues
+    resolver: zodResolver(evolutionApiFormSchema),
+    defaultValues,
+    mode: "onChange"
   });
 
   const onSaveSettings = async (data: EvolutionApiFormValues) => {
@@ -22,6 +25,11 @@ const EvolutionApiForm: React.FC = () => {
   };
 
   const handleTestMessage = async () => {
+    const isValid = await form.trigger("testNumber");
+    if (!isValid) {
+      return;
+    }
+    
     await sendTestMessage(form.getValues());
   };
 
@@ -47,7 +55,7 @@ const EvolutionApiForm: React.FC = () => {
             />
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button type="submit">Salvar Configurações</Button>
+            <Button type="submit" disabled={isLoading}>Salvar Configurações</Button>
           </CardFooter>
         </form>
       </Form>

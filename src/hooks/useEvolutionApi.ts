@@ -9,16 +9,30 @@ export const useEvolutionApi = () => {
   const { systemSettings, updateSystemSettings } = useSettings();
   
   const saveSettings = async (data: EvolutionApiFormValues) => {
-    await updateSystemSettings({
-      evolutionInstance: data.instanceName,
-      evolutionToken: data.apiToken,
-      evolutionUrl: data.apiBaseUrl
-    });
-    
-    toast({
-      title: "Configurações salvas",
-      description: "As configurações do Evolution API foram salvas com sucesso."
-    });
+    try {
+      await updateSystemSettings({
+        evolutionInstance: data.instanceName,
+        evolutionToken: data.apiToken,
+        evolutionUrl: data.apiBaseUrl
+      });
+      
+      // Save to localStorage for direct access in notifications utility
+      localStorage.setItem('evolutionInstance', data.instanceName);
+      localStorage.setItem('evolutionToken', data.apiToken);
+      localStorage.setItem('evolutionUrl', data.apiBaseUrl);
+      
+      toast({
+        title: "Configurações salvas",
+        description: "As configurações do Evolution API foram salvas com sucesso."
+      });
+    } catch (error) {
+      console.error("Erro ao salvar configurações:", error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar as configurações.",
+        variant: "destructive",
+      });
+    }
   };
 
   const sendTestMessage = async (formValues: EvolutionApiFormValues) => {
@@ -30,7 +44,7 @@ export const useEvolutionApi = () => {
         description: "Por favor, insira um número de teste válido.",
         variant: "destructive",
       });
-      return;
+      throw new Error("Número de teste inválido");
     }
 
     if (!instanceName || !apiToken) {
@@ -39,7 +53,7 @@ export const useEvolutionApi = () => {
         description: "Por favor, preencha o nome da instância e o token API.",
         variant: "destructive",
       });
-      return;
+      throw new Error("Dados de configuração incompletos");
     }
 
     setIsLoading(true);
@@ -68,12 +82,14 @@ export const useEvolutionApi = () => {
           })
         });
         
+        if (!response.ok) {
+          const errorResult = await response.text();
+          console.error("WhatsApp API error response:", errorResult);
+          throw new Error(`WhatsApp API error: ${errorResult}`);
+        }
+        
         const result = await response.json();
         console.log("WhatsApp direct API response:", result);
-        
-        if (!response.ok) {
-          throw new Error(`WhatsApp API error: ${result.error || JSON.stringify(result)}`);
-        }
         
         toast({
           title: "Mensagem enviada",
@@ -83,10 +99,15 @@ export const useEvolutionApi = () => {
         return;
       } catch (directError) {
         console.error("Erro ao enviar mensagem diretamente:", directError);
+        // Fall through to fallback method
       }
       
       // Fallback to using the Supabase function
-      const response = await fetch(`${window.location.origin}/api/send-notification`, {
+      console.log("Tentando enviar via API local...");
+      const fallbackUrl = `${window.location.origin}/api/send-notification`;
+      console.log("Fallback URL:", fallbackUrl);
+      
+      const response = await fetch(fallbackUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -118,6 +139,7 @@ export const useEvolutionApi = () => {
         description: "Não foi possível enviar a mensagem de teste. Verifique os logs no console para mais detalhes.",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setIsLoading(false);
     }
