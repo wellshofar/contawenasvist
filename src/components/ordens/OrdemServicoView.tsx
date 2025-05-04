@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { OrdemServicoViewProps } from "./types";
 import OrderHeader from "./OrderHeader";
@@ -22,68 +22,80 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
   serviceItems,
   onBack
 }) => {
+  useEffect(() => {
+    // Ensure the content is loaded before allowing print
+    document.body.classList.add('print-ready');
+    return () => {
+      document.body.classList.remove('print-ready');
+    };
+  }, []);
+
   const handlePrint = () => {
     window.print();
   };
 
   const handleDownloadPDF = () => {
-    // Create a complete ServiceOrder object from the order prop
-    const completeOrder: ServiceOrder = {
-      id: order.id,
-      title: order.title,
-      description: order.description || null,
-      customer_id: order.customer_id,
-      customer_product_id: order.customer_product_id,
-      status: order.status,
-      scheduled_date: order.scheduled_date,
-      completed_date: order.completed_date || null,
-      assigned_to: order.assigned_to,
-      created_at: order.created_at,
-      updated_at: order.updated_at,
-      created_by: order.created_by
-    };
+    try {
+      // Create a complete ServiceOrder object from the order prop
+      const completeOrder: ServiceOrder = {
+        id: order.id,
+        title: order.title,
+        description: order.description || null,
+        customer_id: order.customer_id,
+        customer_product_id: order.customer_product_id,
+        status: order.status,
+        scheduled_date: order.scheduled_date,
+        completed_date: order.completed_date || null,
+        assigned_to: order.assigned_to,
+        created_at: order.created_at,
+        updated_at: order.updated_at,
+        created_by: order.created_by
+      };
 
-    // Create complete objects for the other parameters
-    const completeCustomer: Customer = {
-      id: "customer-id", // This isn't used by PdfGenerator
-      name: customer.name,
-      address: customer.address,
-      city: customer.city,
-      state: customer.state,
-      document: customer.document,
-      postal_code: customer.postal_code,
-      email: customer.email || null,
-      phone: customer.phone || null,
-      created_at: customer.created_at,
-      updated_at: customer.updated_at,
-      created_by: null
-    };
+      // Create complete objects for the other parameters
+      const completeCustomer: Customer = {
+        id: customer.id,
+        name: customer.name,
+        address: customer.address,
+        city: customer.city,
+        state: customer.state,
+        document: customer.document,
+        postal_code: customer.postal_code,
+        email: customer.email || null,
+        phone: customer.phone || null,
+        created_at: customer.created_at,
+        updated_at: customer.updated_at,
+        created_by: customer.created_by
+      };
 
-    const completeCustomerProduct: CustomerProduct = {
-      id: customerProduct.id,
-      customer_id: customerProduct.customer_id,
-      product_id: customerProduct.product_id,
-      installation_date: customerProduct.installation_date,
-      next_maintenance_date: customerProduct.next_maintenance_date,
-      notes: customerProduct.notes,
-      created_at: customerProduct.created_at,
-      updated_at: customerProduct.updated_at,
-      created_by: customerProduct.created_by
-    };
+      const completeCustomerProduct: CustomerProduct = {
+        id: customerProduct.id,
+        customer_id: customerProduct.customer_id,
+        product_id: customerProduct.product_id,
+        installation_date: customerProduct.installation_date,
+        next_maintenance_date: customerProduct.next_maintenance_date,
+        notes: customerProduct.notes,
+        created_at: customerProduct.created_at,
+        updated_at: customerProduct.updated_at,
+        created_by: customerProduct.created_by
+      };
 
-    const completeProduct: Product = {
-      id: "product-id", // This isn't used by PdfGenerator
-      name: product.name,
-      model: product.model,
-      description: null,
-      maintenance_interval_days: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      created_by: null
-    };
+      const completeProduct: Product = {
+        id: product.id,
+        name: product.name,
+        model: product.model,
+        description: product.description,
+        maintenance_interval_days: product.maintenance_interval_days,
+        created_at: product.created_at,
+        updated_at: product.updated_at,
+        created_by: product.created_by
+      };
 
-    const doc = generateServiceOrderPDF(completeOrder, completeCustomer, completeCustomerProduct, completeProduct, serviceItems);
-    doc.save(`ordem_servico_${order.id}.pdf`);
+      const doc = generateServiceOrderPDF(completeOrder, completeCustomer, completeCustomerProduct, completeProduct, serviceItems);
+      doc.save(`ordem_servico_${order.id}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
   };
 
   return (

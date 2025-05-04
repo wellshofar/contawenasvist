@@ -27,15 +27,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Customer, Product, CustomerProduct } from "@/types/supabase";
+import { Plus, Trash2 } from "lucide-react";
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 // Define the form schema
 const formSchema = z.object({
   title: z.string().min(3, { message: "O título deve ter pelo menos 3 caracteres" }),
   description: z.string().optional(),
   customerId: z.string({ required_error: "Selecione um cliente" }),
-  customerProductId: z.string().optional(),
   status: z.string().default("pending"),
   scheduledDate: z.string().optional(),
+  // We'll handle products separately as they can be multiple
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -53,6 +62,7 @@ const OrdemServicoForm: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerProducts, setCustomerProducts] = useState<CustomerProductWithDetails[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -111,42 +121,65 @@ const OrdemServicoForm: React.FC = () => {
   const handleCustomerChange = (value: string) => {
     setSelectedCustomer(value);
     form.setValue("customerId", value);
-    form.setValue("customerProductId", ""); // Reset product selection
+    setSelectedProducts([]); // Reset product selection
     fetchCustomerProducts(value);
+  };
+
+  // Handle product selection
+  const handleAddProduct = (productId: string) => {
+    if (!selectedProducts.includes(productId)) {
+      setSelectedProducts([...selectedProducts, productId]);
+    }
+  };
+
+  // Handle product removal
+  const handleRemoveProduct = (productId: string) => {
+    setSelectedProducts(selectedProducts.filter(id => id !== productId));
   };
 
   // Submit the form
   const onSubmit = async (values: FormValues) => {
+    if (selectedProducts.length === 0) {
+      toast({
+        title: "Selecione pelo menos um produto",
+        description: "É necessário selecionar pelo menos um produto para criar a ordem de serviço.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Create service order
+      // Create one service order for each selected product
+      const ordersToCreate = selectedProducts.map(productId => ({
+        title: values.title,
+        description: values.description || null,
+        customer_id: values.customerId,
+        customer_product_id: productId,
+        status: values.status,
+        scheduled_date: values.scheduledDate ? new Date(values.scheduledDate).toISOString() : null,
+        created_by: user?.id || null,
+      }));
+
       const { data, error } = await supabase
         .from("service_orders")
-        .insert({
-          title: values.title,
-          description: values.description || null,
-          customer_id: values.customerId,
-          customer_product_id: values.customerProductId || null,
-          status: values.status,
-          scheduled_date: values.scheduledDate ? new Date(values.scheduledDate).toISOString() : null,
-          created_by: user?.id || null,
-        })
+        .insert(ordersToCreate)
         .select();
 
       if (error) throw error;
 
       toast({
-        title: "Ordem de serviço criada",
-        description: "A ordem de serviço foi criada com sucesso.",
+        title: "Ordens de serviço criadas",
+        description: `${ordersToCreate.length} ordem(ns) de serviço foram criadas com sucesso.`,
       });
 
       // Navigate back to orders list
       navigate("/ordens");
     } catch (error) {
-      console.error("Error creating service order:", error);
+      console.error("Error creating service orders:", error);
       toast({
-        title: "Erro ao criar ordem de serviço",
-        description: "Não foi possível criar a ordem de serviço. Tente novamente.",
+        title: "Erro ao criar ordens de serviço",
+        description: "Não foi possível criar as ordens de serviço. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -234,34 +267,69 @@ const OrdemServicoForm: React.FC = () => {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="customerProductId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Produto</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        disabled={!selectedCustomer}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um produto" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {customerProducts.map((cp) => (
-                            <SelectItem key={cp.id} value={cp.id}>
-                              {cp.product?.name} - {cp.product?.model}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
+                <div>
+                  <FormLabel>Produtos</FormLabel>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Select
+                      disabled={!selectedCustomer}
+                      onValueChange={handleAddProduct}
+                      value=""
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Adicionar produto" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customerProducts.map((cp) => (
+                          <SelectItem 
+                            key={cp.id} 
+                            value={cp.id}
+                            disabled={selectedProducts.includes(cp.id)}
+                          >
+                            {cp.product?.name} - {cp.product?.model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {selectedProducts.length > 0 ? (
+                    <div className="border rounded-md mt-2">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Produto</TableHead>
+                            <TableHead className="w-[100px]">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {selectedProducts.map(productId => {
+                            const product = customerProducts.find(cp => cp.id === productId);
+                            return (
+                              <TableRow key={productId}>
+                                <TableCell>
+                                  {product?.product?.name} - {product?.product?.model}
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveProduct(productId)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground mt-2">
+                      {selectedCustomer ? "Nenhum produto selecionado" : "Selecione um cliente primeiro"}
+                    </div>
                   )}
-                />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -314,7 +382,7 @@ const OrdemServicoForm: React.FC = () => {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={loading}>
-                  {loading ? "Criando..." : "Criar Ordem de Serviço"}
+                  {loading ? "Criando..." : "Criar Ordens de Serviço"}
                 </Button>
               </div>
             </form>

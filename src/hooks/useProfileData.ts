@@ -18,7 +18,10 @@ export const useProfileData = () => {
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
       
       setIsLoading(true);
       try {
@@ -59,18 +62,41 @@ export const useProfileData = () => {
     if (!user) return false;
     
     try {
-      // Update profile in the database
-      const { error } = await supabase
+      // First check if profile exists
+      const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
-        .update({
-          full_name: data.full_name,
-          phone: data.phone,
-          email: data.email,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+        
+      if (checkError) throw checkError;
+      
+      if (!existingProfile) {
+        // Insert new profile
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            full_name: data.full_name,
+            phone: data.phone,
+            email: data.email,
+          });
+          
+        if (insertError) throw insertError;
+      } else {
+        // Update existing profile
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            full_name: data.full_name,
+            phone: data.phone,
+            email: data.email,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
         
       // Update local state
       setProfileData(data);
