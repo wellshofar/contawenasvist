@@ -1,3 +1,4 @@
+
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
@@ -31,8 +32,12 @@ export interface CustomerInfoProps {
     state: string;
     document: string;
     postal_code: string;
-    email?: string;
-    phone?: string;
+    email?: string | null;
+    phone?: string | null;
+    id?: string;
+    created_at: string;
+    updated_at: string;
+    created_by?: string | null;
   };
 }
 
@@ -40,6 +45,12 @@ export interface ProductInfoProps {
   product: {
     name: string;
     model: string;
+    id?: string;
+    description?: string | null;
+    maintenance_interval_days?: number | null;
+    created_at?: string;
+    updated_at?: string;
+    created_by?: string | null;
   };
   customerProduct: {
     installation_date: string | null;
@@ -81,10 +92,18 @@ export interface OrdemServicoViewProps {
     phone?: string | null;
     created_at: string;
     updated_at: string;
+    id?: string;
+    created_by?: string | null;
   };
   product: {
     name: string;
     model: string;
+    id?: string;
+    description?: string | null;
+    maintenance_interval_days?: number | null;
+    created_at?: string;
+    updated_at?: string;
+    created_by?: string | null;
   };
   customerProduct: {
     id: string;

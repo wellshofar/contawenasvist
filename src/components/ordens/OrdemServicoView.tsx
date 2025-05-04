@@ -54,7 +54,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
 
       // Create complete objects for the other parameters
       const completeCustomer: Customer = {
-        id: customer.id,
+        id: customer.id || '', // Add missing id property with default
         name: customer.name,
         address: customer.address,
         city: customer.city,
@@ -65,7 +65,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
         phone: customer.phone || null,
         created_at: customer.created_at,
         updated_at: customer.updated_at,
-        created_by: customer.created_by
+        created_by: customer.created_by || null // Add missing created_by property with default
       };
 
       const completeCustomerProduct: CustomerProduct = {
@@ -81,14 +81,14 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
       };
 
       const completeProduct: Product = {
-        id: product.id,
+        id: product.id || '', // Add missing id property with default
         name: product.name,
         model: product.model,
-        description: product.description,
-        maintenance_interval_days: product.maintenance_interval_days,
-        created_at: product.created_at,
-        updated_at: product.updated_at,
-        created_by: product.created_by
+        description: product.description || null, // Add missing description property with default
+        maintenance_interval_days: product.maintenance_interval_days || 0, // Add missing maintenance_interval_days property with default
+        created_at: product.created_at || '', // Add missing created_at property with default
+        updated_at: product.updated_at || '', // Add missing updated_at property with default
+        created_by: product.created_by || null // Add missing created_by property with default
       };
 
       const doc = generateServiceOrderPDF(completeOrder, completeCustomer, completeCustomerProduct, completeProduct, serviceItems);
