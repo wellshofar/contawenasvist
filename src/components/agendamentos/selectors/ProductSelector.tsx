@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ProductSelectorProps {
   form: UseFormReturn<AppointmentFormValues>;
@@ -37,43 +39,58 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
   isLoadingProducts,
   selectedCustomerId,
 }) => {
+  const productIds = form.watch('productIds') || [];
+  
+  const toggleProduct = (productId: string) => {
+    const currentIds = productIds || [];
+    const newIds = currentIds.includes(productId) 
+      ? currentIds.filter(id => id !== productId)
+      : [...currentIds, productId];
+      
+    form.setValue('productIds', newIds);
+  };
+
   return (
-    <FormField
-      control={form.control}
-      name="productIds"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Produto</FormLabel>
-          <Select
-            onValueChange={(value) => field.onChange([value])}
-            value={field.value && field.value.length > 0 ? field.value[0] : undefined}
-            disabled={!selectedCustomerId || isLoadingProducts}
-          >
-            <FormControl>
-              <SelectTrigger>
-                {isLoadingProducts ? (
-                  <div className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Carregando...</span>
-                  </div>
-                ) : (
-                  <SelectValue placeholder="Selecione um produto" />
-                )}
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="none">Nenhum produto específico</SelectItem>
-              {customerProducts.map((cp) => (
-                <SelectItem key={cp.id} value={cp.id}>
-                  {cp.displayName}
-                </SelectItem>
+    <FormItem className="space-y-2">
+      <FormLabel>Produtos</FormLabel>
+      <div className="border rounded-md">
+        {isLoadingProducts ? (
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <span>Carregando produtos...</span>
+          </div>
+        ) : !selectedCustomerId ? (
+          <div className="p-2 text-sm text-muted-foreground">
+            Selecione um cliente primeiro
+          </div>
+        ) : customerProducts.length === 0 ? (
+          <div className="p-2 text-sm text-muted-foreground">
+            Nenhum produto encontrado para este cliente
+          </div>
+        ) : (
+          <ScrollArea className="h-[200px] p-2">
+            <div className="space-y-2">
+              {customerProducts.map((product) => (
+                <div key={product.id} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`product-${product.id}`}
+                    checked={productIds.includes(product.id)}
+                    onCheckedChange={() => toggleProduct(product.id)}
+                  />
+                  <label 
+                    htmlFor={`product-${product.id}`}
+                    className="text-sm cursor-pointer flex-1"
+                  >
+                    {product.displayName}
+                  </label>
+                </div>
               ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+            </div>
+          </ScrollArea>
+        )}
+      </div>
+      <FormMessage />
+    </FormItem>
   );
 };
 
