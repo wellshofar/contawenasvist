@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Package, Calendar, ClipboardCheck, ArrowUpRight } from "lucide-react";
@@ -64,7 +63,7 @@ const Dashboard: React.FC = () => {
       try {
         setLoading(true);
         
-        // Fetch dashboard statistics
+        // Fetch dashboard statistics - real data only
         const statsData = await fetchDashboardStats();
         setStats([
           { title: "Clientes", value: statsData.clientCount.toString(), icon: Users, color: "bg-blue-50 text-blue-500", link: "/clientes" },
@@ -73,19 +72,19 @@ const Dashboard: React.FC = () => {
           { title: "Agendamentos", value: statsData.appointmentCount.toString(), icon: Calendar, color: "bg-emerald-50 text-emerald-500", link: "/agendamentos" },
         ]);
         
-        // Fetch recent orders
+        // Fetch real data for recent orders
         const orders = await fetchRecentOrders();
         setRecentOrders(orders);
         
-        // Fetch upcoming maintenance
+        // Fetch real data for upcoming maintenance
         const maintenance = await fetchUpcomingMaintenance();
         setUpcomingMaintenance(maintenance);
         
-        // Fetch orders by status for pie chart
+        // Fetch real data for orders by status for pie chart
         const statusData = await fetchOrdersByStatus();
         setOrdersByStatus(statusData);
         
-        // Fetch product distribution for bar chart
+        // Fetch real data for product distribution for bar chart
         const productData = await fetchProductDistribution();
         setProductDistribution(productData);
         

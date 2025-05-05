@@ -14,7 +14,6 @@ interface AuthLayoutProps {
 const AuthLayout: React.FC<AuthLayoutProps> = ({ 
   children, 
   loginContent, 
-  registerContent,
   defaultTab = 'login',
   onTabChange 
 }) => {
@@ -33,19 +32,16 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
               <h1 className="text-2xl font-bold text-hoken-600">HOKEN Service Manager</h1>
             </div>
             <Tabs defaultValue={defaultTab} onValueChange={handleValueChange}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Acessar</TabsTrigger>
-                <TabsTrigger value="register">Novo Cadastro</TabsTrigger>
+              <TabsList className="w-full">
+                <TabsTrigger value="login" className="w-full">Acessar</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login">
                 {loginContent}
               </TabsContent>
-              
-              <TabsContent value="register">
-                {registerContent}
-              </TabsContent>
             </Tabs>
+            
+            {children}
           </CardHeader>
           
           <CardFooter className="text-center text-xs text-muted-foreground">
