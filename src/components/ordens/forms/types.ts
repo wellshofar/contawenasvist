@@ -9,6 +9,7 @@ export const formSchema = z.object({
   customerId: z.string({ required_error: "Selecione um cliente" }),
   status: z.string().default("pending"),
   scheduledDate: z.string().optional(),
+  template: z.string().optional(), // Added field for the editable template
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -21,4 +22,31 @@ export type CustomerProductWithDetails = CustomerProduct & {
 // Props interface for the form
 export interface OrdemServicoFormProps {
   onCancel?: () => void;
+}
+
+// Define interfaces for dashboard data
+export interface DashboardStats {
+  clientCount: number;
+  productCount: number;
+  orderCount: number;
+  appointmentCount: number;
+}
+
+export interface RecentOrder {
+  id: string;
+  client: string;
+  product: string;
+  date: string;
+  status: string;
+}
+
+export interface UpcomingMaintenance {
+  client: string;
+  product: string;
+  date: string;
+}
+
+export interface ChartData {
+  name: string;
+  value: number;
 }

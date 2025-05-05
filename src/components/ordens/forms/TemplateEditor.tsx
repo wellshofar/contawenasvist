@@ -3,21 +3,30 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FormLabel } from "@/components/ui/form";
-import { Edit } from "lucide-react";
+import { Edit, Save } from "lucide-react";
 
 interface TemplateEditorProps {
   templateText: string;
   editMode: boolean;
   onTemplateChange: (text: string) => void;
   onToggleEditMode: () => void;
+  onSaveTemplate?: () => void;
 }
 
 const TemplateEditor: React.FC<TemplateEditorProps> = ({
   templateText,
   editMode,
   onTemplateChange,
-  onToggleEditMode
+  onToggleEditMode,
+  onSaveTemplate
 }) => {
+  const handleSave = () => {
+    onToggleEditMode();
+    if (onSaveTemplate) {
+      onSaveTemplate();
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -26,10 +35,18 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
           type="button" 
           variant="outline" 
           size="sm" 
-          onClick={onToggleEditMode} 
+          onClick={editMode ? handleSave : onToggleEditMode} 
           className="flex items-center gap-1"
         >
-          {editMode ? "Salvar" : <><Edit className="h-4 w-4" /> Editar</>}
+          {editMode ? (
+            <>
+              <Save className="h-4 w-4" /> Salvar
+            </>
+          ) : (
+            <>
+              <Edit className="h-4 w-4" /> Editar
+            </>
+          )}
         </Button>
       </div>
       
