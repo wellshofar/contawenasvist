@@ -38,7 +38,7 @@ export const AgendamentoForm: React.FC<AgendamentoFormProps> = ({
       title: isEditing ? currentAgendamento?.title : "",
       description: isEditing ? currentAgendamento?.description : "",
       customerId: isEditing ? currentAgendamento?.customerId : "",
-      productId: isEditing ? currentAgendamento?.productId : "",
+      productIds: isEditing ? currentAgendamento?.productIds : [],
       scheduledDate: isEditing && currentAgendamento?.scheduledDate
         ? new Date(currentAgendamento.scheduledDate)
         : new Date(),

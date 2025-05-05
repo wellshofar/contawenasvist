@@ -60,7 +60,11 @@ const AgendamentoTable: React.FC<AgendamentoTableProps> = ({
                   {statusTranslations[agendamento.status] || agendamento.status}
                 </Badge>
               </TableCell>
-              <TableCell>{agendamento.productName || "-"}</TableCell>
+              <TableCell>
+                {agendamento.productNames && agendamento.productNames.length > 0 
+                  ? agendamento.productNames.join(", ") 
+                  : "-"}
+              </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

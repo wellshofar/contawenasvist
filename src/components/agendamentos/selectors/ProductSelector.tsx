@@ -40,13 +40,13 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
   return (
     <FormField
       control={form.control}
-      name="productId"
+      name="productIds"
       render={({ field }) => (
         <FormItem>
           <FormLabel>Produto</FormLabel>
           <Select
-            onValueChange={field.onChange}
-            defaultValue={field.value}
+            onValueChange={(value) => field.onChange([value])}
+            value={field.value && field.value.length > 0 ? field.value[0] : undefined}
             disabled={!selectedCustomerId || isLoadingProducts}
           >
             <FormControl>

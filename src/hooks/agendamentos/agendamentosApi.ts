@@ -71,8 +71,10 @@ export const fetchTechnicianDetails = async (technicianIds: string[]) => {
 };
 
 export const addAppointmentToDb = async (values: AppointmentFormValues, userId: string | undefined) => {
-  // Handle the "none" value for productId
-  const productId = values.productId === "none" ? null : values.productId;
+  // Extract the first product ID from the array or set to null if none selected
+  const firstProductId = values.productIds && values.productIds.length > 0 && values.productIds[0] !== "none" 
+    ? values.productIds[0]
+    : null;
   
   const { data, error } = await supabase
     .from("service_orders")
@@ -80,7 +82,7 @@ export const addAppointmentToDb = async (values: AppointmentFormValues, userId: 
       title: values.title,
       description: values.description || null,
       customer_id: values.customerId,
-      customer_product_id: productId,
+      customer_product_id: firstProductId,
       scheduled_date: values.scheduledDate.toISOString(),
       status: values.status,
       created_by: userId || null,
@@ -95,8 +97,10 @@ export const updateAppointmentInDb = async (values: AppointmentFormValues) => {
   if (!values.id) throw new Error("Appointment ID is required for updates");
   
   try {
-    // Handle the "none" value for productId
-    const productId = values.productId === "none" ? null : values.productId;
+    // Extract the first product ID from the array or set to null if none selected
+    const firstProductId = values.productIds && values.productIds.length > 0 && values.productIds[0] !== "none"
+      ? values.productIds[0] 
+      : null;
     
     // Log values for debugging
     console.log("Atualizando agendamento:", {
@@ -112,7 +116,7 @@ export const updateAppointmentInDb = async (values: AppointmentFormValues) => {
         title: values.title,
         description: values.description || null,
         customer_id: values.customerId,
-        customer_product_id: productId,
+        customer_product_id: firstProductId,
         scheduled_date: values.scheduledDate.toISOString(),
         status: values.status,
         updated_at: new Date().toISOString(),

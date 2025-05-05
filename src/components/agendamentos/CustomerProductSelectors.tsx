@@ -30,7 +30,7 @@ const CustomerProductSelectors: React.FC<CustomerProductSelectorsProps> = ({
   const onCustomerChange = (customerId: string) => {
     handleCustomerChange(customerId);
     form.setValue("customerId", customerId);
-    form.setValue("productId", undefined);
+    form.setValue("productIds", []);
   };
 
   return (

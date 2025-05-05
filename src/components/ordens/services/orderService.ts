@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Customer, CustomerProduct } from "@/types/supabase";
 import { CustomerProductWithDetails, DashboardStats, RecentOrder, ChartData } from "../forms/types";
@@ -88,7 +87,7 @@ export const fetchDashboardStats = async (): Promise<DashboardStats> => {
     let appointmentCount = 0;
     try {
       const { count, error } = await supabase
-        .from("appointments")
+        .from("service_orders")
         .select("*", { count: "exact", head: true });
       
       if (!error && count !== null) {
