@@ -10,11 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { Customer } from "@/types/supabase";
 
-// Import our new components and types
+// Import our components and types
 import { formSchema, FormValues, CustomerProductWithDetails, OrdemServicoFormProps } from "./forms/types";
+import { ServiceItem } from "./types";
 import TemplateEditor from "./forms/TemplateEditor";
 import ProductSelector from "./forms/ProductSelector";
 import OrderFormFields from "./forms/OrderFormFields";
+import ServiceItemsForm from "./forms/ServiceItemsForm";
 import { fetchCustomers, fetchCustomerProducts, createServiceOrders } from "./services/orderService";
 
 const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
@@ -26,6 +28,7 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
   const [customerProducts, setCustomerProducts] = useState<CustomerProductWithDetails[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [serviceItems, setServiceItems] = useState<ServiceItem[]>([]);
   const [editMode, setEditMode] = useState(false);
   const [templateText, setTemplateText] = useState<string>(
     "Detalhes do atendimento:\n\n" +
@@ -78,6 +81,16 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
     setSelectedProducts(selectedProducts.filter(id => id !== productId));
   };
 
+  // Handle service item addition
+  const handleAddServiceItem = (item: ServiceItem) => {
+    setServiceItems([...serviceItems, item]);
+  };
+
+  // Handle service item removal
+  const handleRemoveServiceItem = (itemId: string) => {
+    setServiceItems(serviceItems.filter(item => item.id !== itemId));
+  };
+
   // Handle template edit mode toggle
   const toggleEditMode = () => {
     setEditMode(!editMode);
@@ -105,6 +118,8 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
         status: values.status,
         scheduled_date: values.scheduledDate ? new Date(values.scheduledDate).toISOString() : null,
         created_by: user?.id || null,
+        // We'll store service items in the description for now, as we don't have a separate table for them
+        serviceItems: serviceItems
       }));
 
       await createServiceOrders(ordersToCreate, user?.id);
@@ -185,10 +200,6 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  {/* This is intentionally empty to maintain grid layout */}
-                </div>
-                
                 <ProductSelector
                   selectedCustomer={selectedCustomer}
                   customerProducts={customerProducts}
@@ -196,7 +207,17 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
                   onAddProduct={handleAddProduct}
                   onRemoveProduct={handleRemoveProduct}
                 />
+                
+                <div>
+                  {/* This is intentionally empty to maintain grid layout */}
+                </div>
               </div>
+
+              <ServiceItemsForm 
+                serviceItems={serviceItems}
+                onAddItem={handleAddServiceItem}
+                onRemoveItem={handleRemoveServiceItem}
+              />
 
               <div className="flex justify-end space-x-2">
                 <Button 

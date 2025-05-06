@@ -11,6 +11,8 @@ import OrdemServicoForm from "@/components/ordens/OrdemServicoForm";
 import { mockOrders, mockCustomers, mockCustomerProducts, mockProducts, mockServiceItems } from "@/components/ordens/mockData";
 import { getCustomerName } from "@/components/ordens/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { ServiceItem } from "@/components/ordens/types";
+import { extractServiceItems } from "@/components/ordens/services/orderService";
 
 const OrdensDashboard: React.FC = () => {
   const { user, profile } = useAuth();
@@ -20,6 +22,7 @@ const OrdensDashboard: React.FC = () => {
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [filteredOrders, setFilteredOrders] = useState<ServiceOrder[]>(mockOrders);
   const [allOrders, setAllOrders] = useState<ServiceOrder[]>(mockOrders);
+  const [orderServiceItems, setOrderServiceItems] = useState<ServiceItem[]>([]);
   
   // Fetch orders from Supabase
   useEffect(() => {
@@ -46,6 +49,35 @@ const OrdensDashboard: React.FC = () => {
     
     fetchOrders();
   }, []);
+
+  // Fetch service items for the selected order
+  useEffect(() => {
+    const loadServiceItems = async () => {
+      if (selectedOrder) {
+        try {
+          // Try to extract service items from the order description
+          const items = await extractServiceItems(selectedOrder);
+          if (items.length > 0) {
+            setOrderServiceItems(items);
+            return;
+          }
+          
+          // Fallback to mock data if no items were found
+          const mockItems = selectedOrder.customer_product_id ? 
+            mockServiceItems.filter(item => {
+              const customerProduct = mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id);
+              return customerProduct && item.productId === customerProduct.product_id;
+            }) : [];
+          setOrderServiceItems(mockItems);
+        } catch (error) {
+          console.error("Error loading service items:", error);
+          setOrderServiceItems([]);
+        }
+      }
+    };
+    
+    loadServiceItems();
+  }, [selectedOrder]);
 
   // We need to refresh orders when returning from order view/form
   useEffect(() => {
@@ -150,11 +182,7 @@ const OrdensDashboard: React.FC = () => {
               const customerProduct = mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id);
               return customerProduct && p.id === customerProduct.product_id;
             }) || null : null}
-          serviceItems={selectedOrder.customer_product_id ? 
-            mockServiceItems.filter(item => {
-              const customerProduct = mockCustomerProducts.find(cp => cp.id === selectedOrder.customer_product_id);
-              return customerProduct && item.productId === customerProduct.product_id;
-            }) : []}
+          serviceItems={orderServiceItems}
           onBack={handleCloseOrderView}
         />
       ) : showOrderForm ? (

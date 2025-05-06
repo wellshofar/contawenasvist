@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Customer, CustomerProduct } from "@/types/supabase";
 import { CustomerProductWithDetails, DashboardStats, RecentOrder, ChartData } from "../forms/types";
+import { ServiceItem } from "../types";
 
 export const fetchCustomers = async (): Promise<Customer[]> => {
   try {
@@ -46,9 +47,34 @@ export const createServiceOrders = async (
   userId: string | undefined
 ) => {
   try {
+    // For each order, we need to store the service items separately
+    // For now, we'll serialize them in the order description
+    const processedOrders = ordersData.map(orderData => {
+      const { serviceItems, ...order } = orderData;
+      
+      if (serviceItems && serviceItems.length > 0) {
+        // Convert service items to a format that can be stored in the database
+        const serviceItemsData = {
+          items: serviceItems,
+          __metadata: { type: 'serviceItems' }
+        };
+        
+        // Add serialized service items to the order's description field
+        // Only if there's no description yet, otherwise append
+        if (!order.description) {
+          order.description = JSON.stringify(serviceItemsData);
+        } else {
+          // Append service items to existing description
+          order.description = `${order.description}\n\n${JSON.stringify(serviceItemsData)}`;
+        }
+      }
+      
+      return order;
+    });
+
     const { data, error } = await supabase
       .from("service_orders")
-      .insert(ordersData)
+      .insert(processedOrders)
       .select();
 
     if (error) throw error;
@@ -57,6 +83,26 @@ export const createServiceOrders = async (
     console.error("Error creating service orders:", error);
     throw error;
   }
+};
+
+// Function to extract service items from an order's description
+export const extractServiceItems = async (order: any): Promise<ServiceItem[]> => {
+  if (!order.description) return [];
+  
+  try {
+    // Try to find the service items JSON in the description
+    const regex = /\{.*"items":\s*\[.*\].*"__metadata":\s*\{\s*"type":\s*"serviceItems"\s*\}\}/s;
+    const match = order.description.match(regex);
+    
+    if (match) {
+      const serviceItemsData = JSON.parse(match[0]);
+      return serviceItemsData.items || [];
+    }
+  } catch (error) {
+    console.error("Error extracting service items:", error);
+  }
+  
+  return [];
 };
 
 // New functions for dashboard data
