@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { FormLabel } from "@/components/ui/form";
@@ -105,7 +104,22 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
   const handleSelectProduct = (product: Product) => {
     setItemCode(product.model || product.id.substring(0, 8));
     setItemName(product.name);
-    setShowProductSelector(false);
+    // Keep the product selector open to allow selecting multiple products
+  };
+
+  const handleSelectAndAddProduct = (product: Product) => {
+    // Set fields from the selected product
+    const newItem: ServiceItem = {
+      id: crypto.randomUUID(),
+      code: product.model || product.id.substring(0, 8),
+      name: product.name,
+      description: product.name,
+      quantity: 1,
+      price: 0, // Optional, not used in the current implementation
+    };
+
+    // Add item directly
+    onAddItem(newItem);
   };
 
   return (
@@ -230,7 +244,8 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleSelectProduct(product)}
+                                onClick={() => handleSelectAndAddProduct(product)}
+                                title="Adicionar à ordem de serviço"
                               >
                                 <Plus className="h-4 w-4" />
                               </Button>
@@ -255,7 +270,7 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
                     filteredProducts.map((product) => (
                       <div 
                         key={product.id} 
-                        className="border rounded-md p-3 hover:bg-accent cursor-pointer"
+                        className="border rounded-md p-3 hover:bg-accent cursor-pointer relative"
                         onClick={() => handleSelectProduct(product)}
                       >
                         <div className="font-medium">{product.name}</div>
@@ -263,6 +278,18 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
                         <div className="text-xs mt-1 bg-secondary inline-block px-2 py-0.5 rounded">
                           {product.categoria || "Sem categoria"}
                         </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectAndAddProduct(product);
+                          }}
+                          title="Adicionar à ordem de serviço"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))
                   ) : (
@@ -287,11 +314,23 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
                             {categoryProducts.map((product) => (
                               <div 
                                 key={product.id} 
-                                className="border rounded-md p-2 hover:bg-accent cursor-pointer"
+                                className="border rounded-md p-2 hover:bg-accent cursor-pointer relative"
                                 onClick={() => handleSelectProduct(product)}
                               >
                                 <div className="font-medium">{product.name}</div>
                                 <div className="text-sm text-muted-foreground">{product.model || "-"}</div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="absolute top-2 right-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectAndAddProduct(product);
+                                  }}
+                                  title="Adicionar à ordem de serviço"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
                               </div>
                             ))}
                           </div>

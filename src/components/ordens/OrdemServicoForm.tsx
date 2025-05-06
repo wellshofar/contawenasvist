@@ -14,7 +14,6 @@ import { Customer } from "@/types/supabase";
 import { formSchema, FormValues, CustomerProductWithDetails, OrdemServicoFormProps } from "./forms/types";
 import { ServiceItem } from "./types";
 import TemplateEditor from "./forms/TemplateEditor";
-import ProductSelector from "./forms/ProductSelector";
 import OrderFormFields from "./forms/OrderFormFields";
 import ServiceItemsForm from "./forms/ServiceItemsForm";
 import { fetchCustomers, fetchCustomerProducts, createServiceOrders } from "./services/orderService";
@@ -198,20 +197,6 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
                 onTemplateChange={setTemplateText}
                 onToggleEditMode={toggleEditMode}
               />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <ProductSelector
-                  selectedCustomer={selectedCustomer}
-                  customerProducts={customerProducts}
-                  selectedProducts={selectedProducts}
-                  onAddProduct={handleAddProduct}
-                  onRemoveProduct={handleRemoveProduct}
-                />
-                
-                <div>
-                  {/* This is intentionally empty to maintain grid layout */}
-                </div>
-              </div>
 
               <ServiceItemsForm 
                 serviceItems={serviceItems}
