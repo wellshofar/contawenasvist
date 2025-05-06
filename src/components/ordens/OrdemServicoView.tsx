@@ -28,6 +28,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
   onBack
 }) => {
   const { toast } = useToast();
+  const { systemSettings } = useSettings();
   const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState(order.description || "");
   const [isSaving, setIsSaving] = useState(false);
@@ -117,7 +118,15 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
         return;
       }
 
-      const doc = generateServiceOrderPDF(completeOrder, completeCustomer, completeCustomerProduct, completeProduct, serviceItems);
+      const doc = generateServiceOrderPDF(
+        completeOrder, 
+        completeCustomer, 
+        completeCustomerProduct, 
+        completeProduct, 
+        serviceItems,
+        systemSettings
+      );
+      
       doc.save(`ordem_servico_${order.id}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);

@@ -1,23 +1,24 @@
-
-import { SystemSettings, UserSettings } from '@/types/settings';
+import { SystemSettings, UserSettings } from "@/types/settings";
 
 export const defaultUserSettings: UserSettings = {
+  theme: "system",
+  language: "pt-BR",
   notificationsEnabled: true,
-  emailNotifications: true,
-  darkMode: false,
-  language: 'pt-BR',
 };
 
 export const defaultSystemSettings: SystemSettings = {
-  companyName: 'HOKEN',
-  address: '',
-  phone: '',
-  email: '',
-  smtpHost: '',
-  smtpPort: 587,
-  smtpUser: '',
-  smtpPassword: '',
-  smtpSecure: true,
-  smtpFromEmail: '',
-  smtpFromName: '',
+  companyName: "",
+  companyDocument: "",
+  responsibleName: "",
+  companyCode: "",
+  phone: "",
+  email: "",
+  address: "",
+  addressNumber: "",
+  neighborhood: "",
+  city: "",
+  state: "",
+  postalCode: "",
+  businessHours: "",
+  supportChannels: ""
 };

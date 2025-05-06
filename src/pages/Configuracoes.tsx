@@ -5,8 +5,9 @@ import ProfileSettingsForm from "@/components/settings/ProfileSettingsForm";
 import SecuritySettingsForm from "@/components/settings/SecuritySettingsForm";
 import UserSettingsForm from "@/components/settings/UserSettingsForm";
 import IntegrationsSettingsForm from "@/components/settings/IntegrationsSettingsForm";
+import CompanySettingsForm from "@/components/settings/CompanySettingsForm";
 import { useLocation, useNavigate } from "react-router-dom";
-import { User, KeyRound, Settings, Globe } from "lucide-react";
+import { User, KeyRound, Settings, Globe, Building } from "lucide-react";
 
 const Configuracoes: React.FC = () => {
   const location = useLocation();
@@ -16,7 +17,7 @@ const Configuracoes: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get("tab");
-    if (tab && ["profile", "security", "preferences", "integrations"].includes(tab)) {
+    if (tab && ["profile", "security", "preferences", "integrations", "company"].includes(tab)) {
       setActiveTab(tab);
     }
   }, [location.search]);
@@ -34,7 +35,7 @@ const Configuracoes: React.FC = () => {
       </div>
       
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full md:w-auto md:inline-flex grid-cols-4 mb-6">
+        <TabsList className="grid w-full md:w-auto md:inline-flex grid-cols-5 mb-6">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span className="hidden md:inline">Perfil</span>
@@ -50,6 +51,10 @@ const Configuracoes: React.FC = () => {
           <TabsTrigger value="integrations" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
             <span className="hidden md:inline">Integrações</span>
+          </TabsTrigger>
+          <TabsTrigger value="company" className="flex items-center gap-2">
+            <Building className="h-4 w-4" />
+            <span className="hidden md:inline">Empresa</span>
           </TabsTrigger>
         </TabsList>
         
@@ -67,6 +72,10 @@ const Configuracoes: React.FC = () => {
         
         <TabsContent value="integrations" className="mt-0">
           <IntegrationsSettingsForm />
+        </TabsContent>
+        
+        <TabsContent value="company" className="mt-0">
+          <CompanySettingsForm />
         </TabsContent>
       </Tabs>
     </div>

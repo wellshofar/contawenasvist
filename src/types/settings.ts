@@ -1,48 +1,22 @@
-
 export interface UserSettings {
+  theme: 'light' | 'dark' | 'system';
+  language: 'pt-BR' | 'en-US';
   notificationsEnabled: boolean;
-  emailNotifications: boolean;
-  darkMode: boolean;
-  language: string;
 }
 
 export interface SystemSettings {
   companyName: string;
-  address: string;
+  companyDocument: string; // CNPJ
+  responsibleName: string;
+  companyCode: string;
   phone: string;
   email: string;
-  smtpHost: string;
-  smtpPort: number;
-  smtpUser: string;
-  smtpPassword: string;
-  smtpSecure: boolean;
-  smtpFromEmail: string;
-  smtpFromName: string;
-  evolutionInstance?: string;
-  evolutionToken?: string;
-  evolutionUrl?: string;
-  webhookUrl?: string;
+  address: string;
+  addressNumber: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  businessHours: string;
+  supportChannels: string;
 }
-
-export type SMTPSettings = Pick<
-  SystemSettings,
-  | "smtpHost"
-  | "smtpPort"
-  | "smtpUser"
-  | "smtpPassword"
-  | "smtpSecure"
-  | "smtpFromEmail"
-  | "smtpFromName"
->;
-
-export type EvolutionApiSettings = Pick<
-  SystemSettings,
-  | "evolutionInstance"
-  | "evolutionToken"
-  | "evolutionUrl"
->;
-
-export type WebhookSettings = Pick<
-  SystemSettings,
-  | "webhookUrl"
->;
