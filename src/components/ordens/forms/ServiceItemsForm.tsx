@@ -48,6 +48,7 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
   const [itemCode, setItemCode] = useState("");
   const [itemName, setItemName] = useState("");
   const [itemQuantity, setItemQuantity] = useState<number>(1);
+  const [itemPrice, setItemPrice] = useState<number>(0);
   const [viewMode, setViewMode] = useState<"list" | "grid" | "category">("list");
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
@@ -90,7 +91,7 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
       name: itemName,
       description: itemName,
       quantity: itemQuantity,
-      price: 0, // Optional, not used in the current implementation
+      price: itemPrice || 0,
     };
 
     onAddItem(newItem);
@@ -99,15 +100,32 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
     setItemCode("");
     setItemName("");
     setItemQuantity(1);
+    setItemPrice(0);
   };
 
   const handleSelectProduct = (product: Product) => {
     setItemCode(product.model || product.id.substring(0, 8));
     setItemName(product.name);
+    // Attempt to extract price from description if available
+    if (product.description) {
+      const priceMatch = product.description.match(/preço:\s*R?\$?\s*(\d+(?:[.,]\d+)?)/i);
+      if (priceMatch && priceMatch[1]) {
+        setItemPrice(parseFloat(priceMatch[1].replace(',', '.')));
+      }
+    }
     // Keep the product selector open to allow selecting multiple products
   };
 
   const handleSelectAndAddProduct = (product: Product) => {
+    // Try to extract price from description if available
+    let price = 0;
+    if (product.description) {
+      const priceMatch = product.description.match(/preço:\s*R?\$?\s*(\d+(?:[.,]\d+)?)/i);
+      if (priceMatch && priceMatch[1]) {
+        price = parseFloat(priceMatch[1].replace(',', '.'));
+      }
+    }
+
     // Set fields from the selected product
     const newItem: ServiceItem = {
       id: crypto.randomUUID(),
@@ -115,7 +133,7 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
       name: product.name,
       description: product.name,
       quantity: 1,
-      price: 0, // Optional, not used in the current implementation
+      price: price,
     };
 
     // Add item directly
@@ -357,7 +375,7 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
             onChange={(e) => setItemCode(e.target.value)}
           />
         </div>
-        <div className="sm:col-span-7">
+        <div className="sm:col-span-5">
           <Input 
             placeholder="Nome do item ou serviço" 
             value={itemName} 
@@ -371,6 +389,17 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
             min="1" 
             value={itemQuantity} 
             onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
+            placeholder="Qtde"
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <Input 
+            type="number" 
+            min="0" 
+            step="0.01"
+            value={itemPrice} 
+            onChange={(e) => setItemPrice(parseFloat(e.target.value) || 0)}
+            placeholder="Preço R$"
           />
         </div>
         <div className="sm:col-span-1">
@@ -392,7 +421,9 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
               <TableRow>
                 <TableHead>Código</TableHead>
                 <TableHead>Descrição</TableHead>
-                <TableHead className="w-[100px] text-right">Qtde</TableHead>
+                <TableHead className="text-right">Qtde</TableHead>
+                <TableHead className="text-right">Preço Unit.</TableHead>
+                <TableHead className="text-right">Total</TableHead>
                 <TableHead className="w-[80px]">Ação</TableHead>
               </TableRow>
             </TableHeader>
@@ -402,6 +433,12 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
                   <TableCell>{item.code}</TableCell>
                   <TableCell>{item.name}</TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
+                  <TableCell className="text-right">
+                    {item.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {(item.quantity * item.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </TableCell>
                   <TableCell>
                     <Button
                       variant="ghost"
@@ -414,6 +451,15 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
                   </TableCell>
                 </TableRow>
               ))}
+              <TableRow>
+                <TableCell colSpan={2} className="text-right font-semibold">TOTAL:</TableCell>
+                <TableCell className="text-right font-semibold">{serviceItems.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
+                <TableCell className="text-right"></TableCell>
+                <TableCell className="text-right font-semibold">
+                  {serviceItems.reduce((acc, item) => acc + (item.price * item.quantity), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </TableCell>
+                <TableCell></TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </div>

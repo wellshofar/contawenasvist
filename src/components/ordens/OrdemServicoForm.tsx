@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -111,7 +110,7 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
       // Create one service order for each selected product
       const ordersToCreate = selectedProducts.map(productId => ({
         title: values.title,
-        description: templateText || values.description || null,
+        description: templateText || values.description || "",
         customer_id: values.customerId,
         customer_product_id: productId,
         status: values.status,
