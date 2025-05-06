@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import PrintStyles from "./PrintStyles";
 import { generateServiceOrderPDF } from "./PdfGenerator";
 import { ServiceOrder, Customer, Product, CustomerProduct } from "@/types/supabase";
 import { Edit, Save } from "lucide-react";
+import { useSettings } from "@/contexts/SettingsContext";
 
 const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
   order,

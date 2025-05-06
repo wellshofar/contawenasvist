@@ -1,7 +1,10 @@
+
 export interface UserSettings {
   theme: 'light' | 'dark' | 'system';
   language: 'pt-BR' | 'en-US';
   notificationsEnabled: boolean;
+  emailNotifications?: boolean;
+  darkMode?: boolean;
 }
 
 export interface SystemSettings {
@@ -19,4 +22,18 @@ export interface SystemSettings {
   postalCode: string;
   businessHours: string;
   supportChannels: string;
+  
+  // SMTP Settings
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpUser?: string;
+  smtpPassword?: string;
+  smtpSecure?: boolean;
+  smtpFromEmail?: string;
+  smtpFromName?: string;
+  
+  // Evolution API Settings
+  evolutionInstance?: string;
+  evolutionToken?: string;
+  evolutionUrl?: string;
 }
