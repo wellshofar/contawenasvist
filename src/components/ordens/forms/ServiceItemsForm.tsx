@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { ServiceItem } from "@/components/ordens/types";
 import { useProdutos } from "@/hooks/useProdutos";
 import { Product } from "@/types/supabase";

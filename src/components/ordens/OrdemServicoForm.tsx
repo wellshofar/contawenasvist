@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -20,7 +21,7 @@ import { fetchCustomers, fetchCustomerProducts, createServiceOrders } from "./se
 const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerProducts, setCustomerProducts] = useState<CustomerProductWithDetails[]>([]);
@@ -28,12 +29,16 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [serviceItems, setServiceItems] = useState<ServiceItem[]>([]);
   const [editMode, setEditMode] = useState(false);
+  
+  // Set user name in the template text
+  const userFullName = profile?.full_name || user?.email || "Técnico Responsável";
   const [templateText, setTemplateText] = useState<string>(
     "Detalhes do atendimento:\n\n" +
     "1. Procedimentos realizados:\n\n\n" +
     "2. Peças substituídas:\n\n\n" +
     "3. Recomendações técnicas:\n\n\n" +
-    "4. Observações adicionais:"
+    "4. Observações adicionais:\n\n\n" +
+    `Atendimento Autorizado por: ${userFullName}`
   );
 
   const form = useForm<FormValues>({
@@ -107,6 +112,9 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
 
     setLoading(true);
     try {
+      // Calculate total value from service items
+      const totalValue = serviceItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      
       // Create one service order for each selected product
       const ordersToCreate = selectedProducts.map(productId => ({
         title: values.title,
@@ -116,8 +124,9 @@ const OrdemServicoForm: React.FC<OrdemServicoFormProps> = ({ onCancel }) => {
         status: values.status,
         scheduled_date: values.scheduledDate ? new Date(values.scheduledDate).toISOString() : null,
         created_by: user?.id || null,
-        // We'll store service items in the description for now, as we don't have a separate table for them
-        serviceItems: serviceItems
+        // Include service items and total value
+        serviceItems: serviceItems,
+        totalValue: totalValue
       }));
 
       await createServiceOrders(ordersToCreate, user?.id);

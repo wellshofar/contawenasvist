@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { generateServiceOrderPDF } from "./PdfGenerator";
 import { ServiceOrder, Customer, Product, CustomerProduct } from "@/types/supabase";
 import { Edit, Save } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
   order,
@@ -29,6 +31,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
 }) => {
   const { toast } = useToast();
   const { systemSettings } = useSettings();
+  const { user, profile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState(order.description || "");
   const [isSaving, setIsSaving] = useState(false);
