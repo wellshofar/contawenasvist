@@ -5,6 +5,16 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontalIcon, PencilIcon, TrashIcon, UserIcon } from "lucide-react";
 import { Customer } from "@/types/supabase";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ClienteTableProps {
   clientes: Customer[];
@@ -14,6 +24,22 @@ interface ClienteTableProps {
 }
 
 const ClienteTable: React.FC<ClienteTableProps> = ({ clientes, loading, onEdit, onDelete }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [clienteToDelete, setClienteToDelete] = React.useState<string | null>(null);
+
+  const handleDeleteClick = (id: string) => {
+    setClienteToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (clienteToDelete) {
+      onDelete(clienteToDelete);
+      setClienteToDelete(null);
+    }
+    setDeleteDialogOpen(false);
+  };
+
   return (
     <div className="rounded-md border overflow-hidden">
       <Table>
@@ -74,7 +100,7 @@ const ClienteTable: React.FC<ClienteTableProps> = ({ clientes, loading, onEdit, 
                         Editar
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => onDelete(cliente.id)}
+                        onClick={() => handleDeleteClick(cliente.id)}
                         className="text-destructive"
                       >
                         <TrashIcon className="mr-2 h-4 w-4" />
@@ -88,6 +114,23 @@ const ClienteTable: React.FC<ClienteTableProps> = ({ clientes, loading, onEdit, 
           )}
         </TableBody>
       </Table>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

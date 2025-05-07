@@ -5,6 +5,16 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontalIcon, Layers, PencilIcon, TrashIcon } from "lucide-react";
 import { Product } from "@/types/supabase";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ProdutoTableProps {
   produtos: Product[];
@@ -21,6 +31,22 @@ const ProdutoTable: React.FC<ProdutoTableProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [produtoToDelete, setProdutoToDelete] = React.useState<string | null>(null);
+
+  const handleDeleteClick = (id: string) => {
+    setProdutoToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (produtoToDelete) {
+      onDelete(produtoToDelete);
+      setProdutoToDelete(null);
+    }
+    setDeleteDialogOpen(false);
+  };
+
   return (
     <div className="rounded-md border overflow-hidden">
       <Table>
@@ -81,7 +107,7 @@ const ProdutoTable: React.FC<ProdutoTableProps> = ({
                         Editar
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => onDelete(produto.id)}
+                        onClick={() => handleDeleteClick(produto.id)}
                         className="text-destructive"
                       >
                         <TrashIcon className="mr-2 h-4 w-4" />
@@ -95,6 +121,23 @@ const ProdutoTable: React.FC<ProdutoTableProps> = ({
           )}
         </TableBody>
       </Table>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

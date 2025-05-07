@@ -13,9 +13,21 @@ import { getCustomerName } from "@/components/ordens/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { ServiceItem } from "@/components/ordens/types";
 import { extractServiceItems } from "@/components/ordens/services/orderService";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 const OrdensDashboard: React.FC = () => {
   const { user, profile } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
   const [showOrderView, setShowOrderView] = useState(false);
@@ -23,6 +35,8 @@ const OrdensDashboard: React.FC = () => {
   const [filteredOrders, setFilteredOrders] = useState<ServiceOrder[]>(mockOrders);
   const [allOrders, setAllOrders] = useState<ServiceOrder[]>(mockOrders);
   const [orderServiceItems, setOrderServiceItems] = useState<ServiceItem[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
   
   // Fetch orders from Supabase
   useEffect(() => {
@@ -146,6 +160,50 @@ const OrdensDashboard: React.FC = () => {
     setShowOrderForm(false);
   };
   
+  const handleDeleteOrder = (id: string) => {
+    setOrderToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    
+    try {
+      const { error } = await supabase
+        .from("service_orders")
+        .delete()
+        .eq("id", orderToDelete);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Ordem removida",
+        description: "Ordem de serviço removida com sucesso."
+      });
+      
+      // Refresh the orders list
+      const { data, error: fetchError } = await supabase
+        .from("service_orders")
+        .select("*")
+        .order("created_at", { ascending: false });
+        
+      if (!fetchError && data) {
+        setAllOrders(data);
+        setFilteredOrders(data);
+      }
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      toast({
+        title: "Erro ao remover ordem",
+        description: "Não foi possível remover a ordem de serviço.",
+        variant: "destructive"
+      });
+    } finally {
+      setOrderToDelete(null);
+      setDeleteDialogOpen(false);
+    }
+  };
+  
   return (
     <div className="space-y-6">
       {!showOrderView && !showOrderForm ? (
@@ -166,7 +224,8 @@ const OrdensDashboard: React.FC = () => {
               
               <OrdensTable 
                 orders={filteredOrders} 
-                onOrderClick={handleOrderClick} 
+                onOrderClick={handleOrderClick}
+                onDeleteOrder={handleDeleteOrder}
               />
             </CardContent>
           </Card>
@@ -184,10 +243,28 @@ const OrdensDashboard: React.FC = () => {
             }) || null : null}
           serviceItems={orderServiceItems}
           onBack={handleCloseOrderView}
+          onDelete={handleDeleteOrder}
         />
       ) : showOrderForm ? (
         <OrdemServicoForm onCancel={handleCloseOrderForm} />
       ) : null}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta ordem de serviço? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteOrder} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

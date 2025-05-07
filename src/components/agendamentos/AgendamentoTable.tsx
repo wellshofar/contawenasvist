@@ -12,6 +12,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface AgendamentoTableProps {
   agendamentos: Appointment[];
@@ -30,6 +40,22 @@ const AgendamentoTable: React.FC<AgendamentoTableProps> = ({
 }) => {
   const formatDate = (date: Date) => {
     return format(date, "dd/MM/yyyy HH:mm", { locale: ptBR });
+  };
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [agendamentoToDelete, setAgendamentoToDelete] = React.useState<string | null>(null);
+
+  const handleDeleteClick = (id: string) => {
+    setAgendamentoToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (agendamentoToDelete) {
+      handleDelete(agendamentoToDelete);
+      setAgendamentoToDelete(null);
+    }
+    setDeleteDialogOpen(false);
   };
 
   return (
@@ -78,7 +104,7 @@ const AgendamentoTable: React.FC<AgendamentoTableProps> = ({
                       Editar
                     </DropdownMenuItem>
                     <DropdownMenuItem 
-                      onClick={() => handleDelete(agendamento.id)}
+                      onClick={() => handleDeleteClick(agendamento.id)}
                       className="text-red-600 focus:text-red-600"
                     >
                       Excluir
@@ -90,6 +116,23 @@ const AgendamentoTable: React.FC<AgendamentoTableProps> = ({
           ))}
         </TableBody>
       </Table>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este agendamento? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
