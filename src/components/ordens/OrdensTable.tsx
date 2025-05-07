@@ -2,13 +2,20 @@
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ServiceOrder } from "@/types/supabase";
-import { FileText } from "lucide-react";
+import { FileText, MoreVertical, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCustomerName, useProductName } from "./utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface OrdensTableProps {
   orders: ServiceOrder[];
   onOrderClick: (order: ServiceOrder) => void;
+  onDeleteOrder?: (id: string) => void;
 }
 
 // Customer name component to handle async loading
@@ -23,7 +30,7 @@ const ProductName = ({ customerProductId }: { customerProductId: string | null }
   return <>{name}</>;
 };
 
-const OrdensTable: React.FC<OrdensTableProps> = ({ orders, onOrderClick }) => {
+const OrdensTable: React.FC<OrdensTableProps> = ({ orders, onOrderClick, onDeleteOrder }) => {
   return (
     <Table>
       <TableHeader>
@@ -48,13 +55,35 @@ const OrdensTable: React.FC<OrdensTableProps> = ({ orders, onOrderClick }) => {
               <TableCell>{order.status}</TableCell>
               <TableCell>{order.assigned_to || "-"}</TableCell>
               <TableCell className="text-right">
-                <Button variant="ghost" size="sm" onClick={(e) => {
-                  e.stopPropagation();
-                  onOrderClick(order);
-                }}>
-                  <FileText className="h-4 w-4" />
-                  <span className="sr-only">Ver</span>
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" size="sm">
+                      <MoreVertical className="h-4 w-4" />
+                      <span className="sr-only">Ações</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={(e) => {
+                      e.stopPropagation();
+                      onOrderClick(order);
+                    }}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Ver Detalhes
+                    </DropdownMenuItem>
+                    {onDeleteOrder && (
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteOrder(order.id);
+                        }}
+                        className="text-red-600 focus:text-red-600"
+                      >
+                        <Trash className="h-4 w-4 mr-2" />
+                        Excluir
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))

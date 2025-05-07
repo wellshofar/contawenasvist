@@ -119,6 +119,7 @@ export interface OrdemServicoViewProps {
   } | null;
   serviceItems: ServiceItem[];
   onBack: () => void;
+  onDelete?: (id: string) => void;
 }
 
 export interface ServiceItemsProps {

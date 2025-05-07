@@ -17,9 +17,19 @@ import FooterInfo from "./FooterInfo";
 import PrintStyles from "./PrintStyles";
 import { generateServiceOrderPDF } from "./PdfGenerator";
 import { ServiceOrder, Customer, Product, CustomerProduct } from "@/types/supabase";
-import { Edit, Save } from "lucide-react";
+import { Edit, Save, Trash } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
   order,
@@ -27,7 +37,8 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
   customerProduct,
   product,
   serviceItems,
-  onBack
+  onBack,
+  onDelete
 }) => {
   const { toast } = useToast();
   const { systemSettings } = useSettings();
@@ -35,6 +46,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState(order.description || "");
   const [isSaving, setIsSaving] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     // Ensure the content is loaded before allowing print
@@ -170,30 +182,56 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
     }
   };
 
+  const handleDeleteClick = () => {
+    if (onDelete) {
+      setDeleteDialogOpen(true);
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (onDelete) {
+      onDelete(order.id);
+      setDeleteDialogOpen(false);
+    }
+  };
+
   // Component for the editable description
   const OrderDescription = () => (
     <div className="mb-6 border-b pb-4 print:mb-4">
       <div className="flex items-center justify-between mb-2">
         <h2 className="font-bold text-lg">Detalhes do Atendimento</h2>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={isEditing ? handleSaveDescription : handleToggleEdit}
-          className="flex items-center gap-1 print:hidden"
-          disabled={isSaving}
-        >
-          {isEditing ? (
-            <>
-              <Save className="h-4 w-4" />
-              {isSaving ? "Salvando..." : "Salvar"}
-            </>
-          ) : (
-            <>
-              <Edit className="h-4 w-4" />
-              Editar
-            </>
+        <div className="flex gap-2 print:hidden">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={isEditing ? handleSaveDescription : handleToggleEdit}
+            className="flex items-center gap-1"
+            disabled={isSaving}
+          >
+            {isEditing ? (
+              <>
+                <Save className="h-4 w-4" />
+                {isSaving ? "Salvando..." : "Salvar"}
+              </>
+            ) : (
+              <>
+                <Edit className="h-4 w-4" />
+                Editar
+              </>
+            )}
+          </Button>
+          {onDelete && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleDeleteClick}
+              className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash className="h-4 w-4" />
+              Excluir
+            </Button>
           )}
-        </Button>
+        </div>
       </div>
       
       {isEditing ? (
@@ -250,6 +288,23 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
           </Card>
         </div>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta ordem de serviço? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <PrintStyles />
     </>
