@@ -1,6 +1,6 @@
 
 import React from "react";
-import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import ClienteForm, { ClienteFormValues } from "./ClienteForm";
 
 interface ClienteDialogProps {
@@ -15,10 +15,8 @@ const ClienteDialog: React.FC<ClienteDialogProps> = ({
   onSubmit,
 }) => {
   const handleCancel = () => {
-    const closeButton = document.querySelector('[data-radix-dialog-close]');
-    if (closeButton && 'click' in closeButton) {
-      (closeButton as HTMLElement).click();
-    }
+    // Usar DialogClose para fechar o diálogo sem confiar em querySelectors
+    // que podem causar problemas de interação
   };
   
   return (
