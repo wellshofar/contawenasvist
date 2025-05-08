@@ -44,9 +44,29 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
   const { systemSettings } = useSettings();
   const { user, profile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedDescription, setEditedDescription] = useState(order.description || "");
+  const [editedDescription, setEditedDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [cleanDescription, setCleanDescription] = useState("");
+
+  // Parse and clean up the description when component loads
+  useEffect(() => {
+    if (order.description) {
+      // Try to extract service items JSON from the description
+      const regex = /\{.*"items":\s*\[.*\].*"__metadata":\s*\{\s*"type":\s*"serviceItems"\s*\}\}/s;
+      const match = order.description.match(regex);
+      
+      if (match) {
+        // Remove the JSON from the description to show only the actual text
+        const cleanText = order.description.replace(match[0], "").trim();
+        setCleanDescription(cleanText);
+        setEditedDescription(cleanText);
+      } else {
+        setCleanDescription(order.description);
+        setEditedDescription(order.description);
+      }
+    }
+  }, [order.description]);
 
   useEffect(() => {
     // Ensure the content is loaded before allowing print
@@ -155,9 +175,23 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
   const handleSaveDescription = async () => {
     setIsSaving(true);
     try {
+      // When saving, make sure to preserve the original JSON data in the description
+      let updatedDescription = editedDescription;
+
+      // Check if there was service items JSON in the original description
+      if (order.description) {
+        const regex = /(\{.*"items":\s*\[.*\].*"__metadata":\s*\{\s*"type":\s*"serviceItems"\s*\}\})/s;
+        const match = order.description.match(regex);
+        
+        if (match) {
+          // Append the JSON to the new description
+          updatedDescription = `${editedDescription}\n\n${match[1]}`;
+        }
+      }
+
       const { error } = await supabase
         .from("service_orders")
-        .update({ description: editedDescription })
+        .update({ description: updatedDescription })
         .eq("id", order.id);
 
       if (error) throw error;
@@ -167,8 +201,9 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
         description: "Ordem de serviço atualizada com sucesso.",
       });
 
-      // Update the local order object
-      order.description = editedDescription;
+      // Update the local state
+      setCleanDescription(editedDescription);
+      order.description = updatedDescription;
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating service order:", error);
@@ -242,7 +277,7 @@ const OrdemServicoView: React.FC<OrdemServicoViewProps> = ({
         />
       ) : (
         <div className="whitespace-pre-wrap">
-          {editedDescription || "Nenhum detalhe informado."}
+          {cleanDescription || "Nenhum detalhe informado."}
         </div>
       )}
     </div>
