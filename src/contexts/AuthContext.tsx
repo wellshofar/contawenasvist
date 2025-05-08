@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +16,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isTecnico: boolean;
   isAtendente: boolean;
+  adminExists: boolean | null; // Added this property
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,6 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [adminExists, setAdminExists] = useState<boolean | null>(null); // Added state for admin existence
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,10 +60,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
+    // Check if admin user exists
+    checkIfAdminExists();
+
     return () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  const checkIfAdminExists = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', 'admin')
+        .limit(1);
+      
+      if (error) {
+        console.error('Error checking for admin existence:', error);
+        return;
+      }
+      
+      setAdminExists(data && data.length > 0);
+    } catch (error) {
+      console.error('Error in checkIfAdminExists:', error);
+    }
+  };
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -153,7 +176,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userRole,
         isAdmin,
         isTecnico,
-        isAtendente
+        isAtendente,
+        adminExists
       }}
     >
       {children}
