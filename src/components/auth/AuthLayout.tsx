@@ -14,6 +14,7 @@ interface AuthLayoutProps {
 const AuthLayout: React.FC<AuthLayoutProps> = ({ 
   children, 
   loginContent, 
+  registerContent,
   defaultTab = 'login',
   onTabChange 
 }) => {
@@ -34,11 +35,18 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
             <Tabs defaultValue={defaultTab} onValueChange={handleValueChange}>
               <TabsList className="w-full">
                 <TabsTrigger value="login" className="w-full">Acessar</TabsTrigger>
+                {registerContent && <TabsTrigger value="register" className="w-full">Registrar</TabsTrigger>}
               </TabsList>
               
               <TabsContent value="login">
                 {loginContent}
               </TabsContent>
+
+              {registerContent && (
+                <TabsContent value="register">
+                  {registerContent}
+                </TabsContent>
+              )}
             </Tabs>
             
             {children}
