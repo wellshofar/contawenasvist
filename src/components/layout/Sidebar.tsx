@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -25,6 +24,15 @@ const Sidebar: React.FC = () => {
     { icon: ClipboardCheck, label: "Ordens de Serviço", path: "/ordens" },
     { icon: Calendar, label: "Agendamentos", path: "/agendamentos" },
     { icon: Settings, label: "Configurações", path: "/configuracoes" },
+  ];
+
+  // Settings items
+  const settingsItems = [
+    { href: "/configuracoes?tab=profile", label: "Perfil", icon: User },
+    { href: "/configuracoes?tab=security", label: "Segurança", icon: KeyRound },
+    { href: "/configuracoes?tab=preferences", label: "Preferências", icon: Settings },
+    { href: "/configuracoes?tab=integrations", label: "Integrações", icon: Globe },
+    { href: "/configuracoes?tab=company", label: "Empresa", icon: Building },
   ];
 
   return (

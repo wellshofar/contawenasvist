@@ -14,7 +14,6 @@ import Configuracoes from './pages/Configuracoes';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from "@/components/ui/toaster";
 import OrdemServicoForm from './components/ordens/OrdemServicoForm';
-import Auth from './pages/Auth';
 
 function App() {
   return (
@@ -24,7 +23,6 @@ function App() {
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
-            <Route path="/auth" element={<Auth />} />
             
             {/* Protected routes */}
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
