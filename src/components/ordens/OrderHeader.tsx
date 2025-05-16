@@ -10,12 +10,17 @@ const OrderHeader: React.FC<OrderHeaderProps> = ({
   onBack 
 }) => {
   return (
-    <OrderActionButtons
-      orderId={order.id}
-      onPrint={handlePrint}
-      onDownloadPDF={handleDownloadPDF}
-      onBack={onBack}
-    />
+    <div className="space-y-4">
+      <OrderActionButtons
+        orderId={order.id}
+        onPrint={handlePrint}
+        onDownloadPDF={handleDownloadPDF}
+        onBack={onBack}
+      />
+      {order.title && (
+        <h2 className="text-xl font-semibold text-gray-700">{order.title}</h2>
+      )}
+    </div>
   );
 };
 
