@@ -9,9 +9,10 @@ import { MailIcon, LockIcon } from "lucide-react";
 interface RegisterFormProps {
   onRegister: (email: string, password: string, fullName: string) => Promise<{error: any}>;
   adminExists: boolean;
+  onSuccess?: () => void;
 }
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, adminExists }) => {
+const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, adminExists, onSuccess }) => {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,7 +44,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, adminExists }) 
           variant: "destructive",
         });
       } else {
-        // No need to manually redirect since toast is shown from signUp function
+        toast({
+          title: "Conta criada com sucesso",
+          description: "Um administrador precisa aprovar sua conta antes que você possa fazer login.",
+        });
+        
+        if (onSuccess) {
+          onSuccess();
+        }
       }
     } catch (error: any) {
       console.error("SignUp exception:", error);

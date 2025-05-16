@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,11 +9,11 @@ import { handleLoginError } from "@/utils/authHelpers";
 
 interface LoginFormProps {
   onLogin: (email: string, password: string) => Promise<{error: any}>;
+  onSuccess?: () => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSuccess }) => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,11 +42,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
           email, 
           password,
           // Function to retry login
-          async () => await onLogin(email, password)
+          async () => {
+            const result = await onLogin(email, password);
+            if (!result.error && onSuccess) {
+              onSuccess();
+            }
+            return result;
+          }
         );
-      } else {
-        // If login successful, redirect to dashboard
-        navigate('/', { replace: true });
+      } else if (onSuccess) {
+        // If login successful and onSuccess callback provided, call it
+        onSuccess();
       }
     } catch (error: any) {
       console.error("Login exception:", error);

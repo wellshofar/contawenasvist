@@ -19,7 +19,7 @@ const Sidebar: React.FC = () => {
   
   // Navigation items with routes
   const navigationItems = [
-    { icon: Home, label: "Dashboard", path: "/" },
+    { icon: Home, label: "Dashboard", path: "/dashboard" },
     { icon: Users, label: "Clientes", path: "/clientes" },
     { icon: Package, label: "Produtos", path: "/produtos" },
     { icon: ClipboardCheck, label: "Ordens de Serviço", path: "/ordens" },
@@ -30,7 +30,7 @@ const Sidebar: React.FC = () => {
   return (
     <SidebarComponent>
       <div className="py-6 flex items-center justify-center">
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/dashboard" className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
             <span className="text-white font-bold text-xl">H</span>
           </div>

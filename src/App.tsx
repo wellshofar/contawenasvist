@@ -3,7 +3,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
-import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Agendamentos from './pages/Agendamentos';
 import Clientes from './pages/Clientes';
@@ -15,6 +14,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from "@/components/ui/toaster";
 import OrdemServicoForm from './components/ordens/OrdemServicoForm';
 import Auth from './pages/Auth';
+import HomePage from './pages/HomePage';
 
 function App() {
   return (
@@ -23,11 +23,14 @@ function App() {
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Auth defaultTab="login" />} />
             <Route path="/auth" element={<Auth />} />
             
+            {/* Home page */}
+            <Route path="/" element={<HomePage />} />
+            
             {/* Protected routes */}
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/agendamentos" element={<ProtectedRoute><Agendamentos /></ProtectedRoute>} />
             <Route path="/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
             <Route path="/produtos" element={<ProtectedRoute><Produtos /></ProtectedRoute>} />
@@ -36,7 +39,7 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
             
-            {/* Redirect all other routes to dashboard */}
+            {/* Redirect all other routes to home */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
           <Toaster />
