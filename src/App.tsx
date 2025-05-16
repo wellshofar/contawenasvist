@@ -14,7 +14,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from "@/components/ui/toaster";
 import OrdemServicoForm from './components/ordens/OrdemServicoForm';
 import Auth from './pages/Auth';
-import HomePage from './pages/HomePage';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -27,8 +26,8 @@ function App() {
             <Route path="/login" element={<Auth defaultTab="login" />} />
             <Route path="/auth" element={<Auth />} />
             
-            {/* Home page (public but redirects authenticated users) */}
-            <Route path="/" element={<HomePage />} />
+            {/* Redirect home page directly to login */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
             
             {/* Protected routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -40,8 +39,8 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
             
-            {/* Redirect /index to home page */}
-            <Route path="/index" element={<Navigate to="/" replace />} />
+            {/* Redirect /index to login page */}
+            <Route path="/index" element={<Navigate to="/login" replace />} />
             
             {/* 404 page for non-existent routes */}
             <Route path="*" element={<NotFound />} />
