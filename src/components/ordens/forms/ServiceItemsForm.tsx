@@ -2,14 +2,12 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FormLabel } from "@/components/ui/form";
-import { Search } from "lucide-react";
 import { ServiceItem } from "@/components/ordens/types";
 import { useProdutos } from "@/hooks/useProdutos";
 import { Product } from "@/types/supabase";
 
-// Import our new components
+// Import our components
 import ProductSelector from "./product-selector/ProductSelector";
-import ServiceItemForm from "./service-items/ServiceItemForm";
 import ServiceItemsTable from "./service-items/ServiceItemsTable";
 
 interface ServiceItemsFormProps {
@@ -23,47 +21,13 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
   onAddItem,
   onRemoveItem,
 }) => {
-  const [itemCode, setItemCode] = useState("");
-  const [itemName, setItemName] = useState("");
-  const [itemQuantity, setItemQuantity] = useState<number>(1);
-  const [itemPrice, setItemPrice] = useState<number>(0);
   const [showProductSelector, setShowProductSelector] = useState(false);
   
   // Fetch all products using the useProdutos hook
   const { produtos, loading } = useProdutos();
 
-  const handleAddItem = () => {
-    if (!itemName.trim()) return;
-
-    // Create a new service item
-    const newItem: ServiceItem = {
-      id: crypto.randomUUID(),
-      code: itemCode || "-",
-      name: itemName,
-      description: itemName,
-      quantity: itemQuantity,
-      price: itemPrice || 0,
-    };
-
-    onAddItem(newItem);
-
-    // Reset form fields
-    setItemCode("");
-    setItemName("");
-    setItemQuantity(1);
-    setItemPrice(0);
-  };
-
   const handleSelectProduct = (product: Product) => {
-    setItemCode(product.model || product.id.substring(0, 8));
-    setItemName(product.name);
-    // Attempt to extract price from description if available
-    if (product.description) {
-      const priceMatch = product.description.match(/preço:\s*R?\$?\s*(\d+(?:[.,]\d+)?)/i);
-      if (priceMatch && priceMatch[1]) {
-        setItemPrice(parseFloat(priceMatch[1].replace(',', '.')));
-      }
-    }
+    // Do nothing, handled by handleSelectAndAddProduct directly
   };
 
   const handleSelectAndAddProduct = (product: Product) => {
@@ -99,15 +63,14 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
             Adicione peças, componentes ou serviços executados nessa ordem de serviço
           </p>
         </div>
-        <div className="flex space-x-2">
+        <div>
           <Button 
             variant="outline" 
             size="sm"
             onClick={() => setShowProductSelector(!showProductSelector)}
             className="flex items-center gap-1"
           >
-            <Search className="h-4 w-4" />
-            Buscar Produtos
+            {showProductSelector ? "Fechar Seleção" : "Buscar Produtos"}
           </Button>
         </div>
       </div>
@@ -120,18 +83,6 @@ const ServiceItemsForm: React.FC<ServiceItemsFormProps> = ({
           onSelectAndAddProduct={handleSelectAndAddProduct}
         />
       )}
-
-      <ServiceItemForm
-        itemCode={itemCode}
-        setItemCode={setItemCode}
-        itemName={itemName}
-        setItemName={setItemName}
-        itemQuantity={itemQuantity}
-        setItemQuantity={setItemQuantity}
-        itemPrice={itemPrice}
-        setItemPrice={setItemPrice}
-        onAddItem={handleAddItem}
-      />
 
       {serviceItems.length > 0 ? (
         <ServiceItemsTable 
