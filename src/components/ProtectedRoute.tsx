@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import AppLayout from './layout/AppLayout';
@@ -11,8 +11,16 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
-  // Show loading state while checking auth
+  // Adicionando console log para depuração
+  useEffect(() => {
+    console.log("ProtectedRoute render -", 
+      { path: location.pathname, isAuthenticated: !!user, loading }
+    );
+  }, [user, loading, location]);
+
+  // Mostre estado de carregamento enquanto verifica autenticação
   if (loading) {
     return (
       <div className="container mx-auto py-8">
@@ -22,12 +30,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Redirect to home if not authenticated
+  // Redirecione para home se não estiver autenticado
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/" replace state={{ from: location }} />;
   }
 
-  // Render children wrapped in AppLayout if authenticated
+  // Renderize os filhos envolvidos em AppLayout se autenticado
   return <AppLayout>{children}</AppLayout>;
 };
 

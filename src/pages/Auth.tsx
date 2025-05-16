@@ -13,6 +13,7 @@ interface AuthProps {
 
 interface LocationState {
   defaultTab?: 'login' | 'register';
+  from?: Location;
 }
 
 const Auth: React.FC<AuthProps> = ({ defaultTab = 'login' }) => {
@@ -23,14 +24,25 @@ const Auth: React.FC<AuthProps> = ({ defaultTab = 'login' }) => {
   const initialTab = locationState?.defaultTab || defaultTab;
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
 
-  // Show loader while checking auth state
+  // Log para depuração
+  useEffect(() => {
+    console.log("Auth render -", { 
+      isAuthenticated: !!user, 
+      loading, 
+      activeTab, 
+      from: locationState?.from?.pathname 
+    });
+  }, [user, loading, activeTab, locationState]);
+
+  // Mostre loader enquanto verifica estado de autenticação
   if (loading) {
     return <AuthLoader />;
   }
 
-  // If user is already logged in, redirect to dashboard
+  // Se o usuário já estiver logado, redirecione para o dashboard
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    const redirectTo = locationState?.from?.pathname || '/dashboard';
+    return <Navigate to={redirectTo} replace />;
   }
 
   const handleTabChange = (value: 'login' | 'register') => {
@@ -42,7 +54,7 @@ const Auth: React.FC<AuthProps> = ({ defaultTab = 'login' }) => {
   };
 
   const handleRegisterSuccess = () => {
-    // Redirect to login tab after successful registration
+    // Redirecione para a aba de login após o registro bem-sucedido
     setActiveTab('login');
   };
 

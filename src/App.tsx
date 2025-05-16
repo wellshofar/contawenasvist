@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/toaster";
 import OrdemServicoForm from './components/ordens/OrdemServicoForm';
 import Auth from './pages/Auth';
 import HomePage from './pages/HomePage';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
@@ -22,14 +23,14 @@ function App() {
       <SettingsProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public routes */}
+            {/* Rotas públicas */}
             <Route path="/login" element={<Auth defaultTab="login" />} />
             <Route path="/auth" element={<Auth />} />
             
-            {/* Home page */}
+            {/* Página inicial */}
             <Route path="/" element={<HomePage />} />
             
-            {/* Protected routes */}
+            {/* Rotas protegidas */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/agendamentos" element={<ProtectedRoute><Agendamentos /></ProtectedRoute>} />
             <Route path="/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
@@ -39,8 +40,11 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
             
-            {/* Redirect all other routes to home */}
-            <Route path="*" element={<Navigate to="/" />} />
+            {/* Redireciona a raiz para a página inicial */}
+            <Route path="/index" element={<Navigate to="/" />} />
+            
+            {/* Página 404 para rotas inexistentes */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />
         </BrowserRouter>
