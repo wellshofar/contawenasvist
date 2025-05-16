@@ -18,6 +18,8 @@ export interface ServiceItem {
   name?: string;
   description: string;
   quantity: number;
+  price: number;  // Added price property
+  productId?: string;  // Added productId property
 }
 
 export interface OrdemServicoViewProps {
@@ -38,6 +40,26 @@ export interface OrderHeaderProps {
   handlePrint: () => void;
   handleDownloadPDF: () => void;
   onBack: () => void;
+}
+
+// Added missing interfaces
+export interface CustomerInfoProps {
+  customer: Customer;
+}
+
+export interface ProductInfoProps {
+  product: Product | null;
+  customerProduct: CustomerProduct | null;
+}
+
+export interface ServiceItemsProps {
+  serviceItems: ServiceItem[];
+}
+
+export interface SignatureFieldProps {
+  title: string;
+  signature: string | null;
+  onSign?: () => void;
 }
 
 export const formatDate = (dateString: string | Date): string => {
