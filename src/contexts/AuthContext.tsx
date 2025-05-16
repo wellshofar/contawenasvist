@@ -22,24 +22,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Função utilitária para limpar o estado de autenticação
+// Utility function to clean up auth state
 const cleanupAuthState = () => {
   try {
-    // Remover todos os tokens relacionados ao Supabase do localStorage
+    // Remove all Supabase-related tokens from localStorage
     Object.keys(localStorage).forEach((key) => {
       if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
         localStorage.removeItem(key);
       }
     });
     
-    // Também limpar do sessionStorage caso esteja em uso
+    // Also clear from sessionStorage if used
     Object.keys(sessionStorage || {}).forEach((key) => {
       if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
         sessionStorage.removeItem(key);
       }
     });
   } catch (error) {
-    console.error('Erro ao limpar estado de autenticação:', error);
+    console.error('Error clearing auth state:', error);
   }
 };
 
@@ -52,15 +52,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
-    // Configurar listener para mudanças no estado de autenticação PRIMEIRO
+    // Set up auth state change listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
-        console.log('Estado de autenticação alterado:', event);
+        console.log('Auth state changed:', event);
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
         if (newSession?.user) {
-          // Adiar busca de perfil para evitar deadlocks
+          // Defer profile fetch to prevent deadlocks
           setTimeout(() => {
             fetchProfile(newSession.user.id);
           }, 0);
@@ -70,9 +70,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // DEPOIS checar por sessão existente
+    // THEN check for existing session
     supabase.auth.getSession().then(async ({ data: { session: initialSession } }) => {
-      console.log('Sessão inicial:', initialSession ? 'Presente' : 'Ausente');
+      console.log('Initial session:', initialSession ? 'Present' : 'Absent');
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
       
@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    // Verificar se existe usuário administrador
+    // Check if admin user exists
     checkIfAdminExists();
 
     return () => {
@@ -133,32 +133,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log(`Tentando fazer login com email: ${email}`);
+      console.log(`Attempting login with email: ${email}`);
       
-      // Limpar estado de autenticação antes de tentar login
+      // Clean up auth state before trying login
       cleanupAuthState();
       
-      // Tente fazer logout global primeiro para evitar problemas com sessões existentes
+      // Try global logout first to avoid issues with existing sessions
       try {
         await supabase.auth.signOut({ scope: 'global' });
       } catch (logoutError) {
-        console.warn("Erro no logout antes do login:", logoutError);
-        // Continuar mesmo se o logout falhar
+        console.warn("Error in logout before login:", logoutError);
+        // Continue even if logout fails
       }
       
-      // Agora tente fazer login
+      // Now try to log in
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
-        console.error('Erro de login:', error);
+        console.error('Login error:', error);
         return { error };
       }
 
-      console.log('Login bem-sucedido, usuário:', data.user);
-      // Não precisamos definir manualmente usuário/sessão aqui, onAuthStateChange cuidará disso
+      console.log('Login successful, user:', data.user);
+      // No need to manually set user/session here, onAuthStateChange will handle it
       return { error: null };
     } catch (error) {
-      console.error('Exceção em signIn:', error);
+      console.error('Exception in signIn:', error);
       return { error };
     }
   };
@@ -194,22 +194,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      // Limpar estado de autenticação
+      // Clean up auth state
       cleanupAuthState();
       
-      // Tentar logout global
+      // Try global logout
       await supabase.auth.signOut({ scope: 'global' });
       
-      // Forçar recarregamento da página para garantir estado limpo
+      // Force page reload for clean state
       window.location.href = '/';
     } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-      // Mesmo com erro, tentar navegar para a página inicial
+      console.error('Error during logout:', error);
+      // Even with error, try to navigate to home page
       window.location.href = '/';
     }
   };
 
-  // Helpers para controle de acesso baseado em função
+  // Role-based access control helpers
   const userRole = profile?.role || null;
   const isAdmin = userRole === 'admin';
   const isTecnico = userRole === 'tecnico';
@@ -240,7 +240,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

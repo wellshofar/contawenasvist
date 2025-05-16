@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import Dashboard from './pages/Dashboard';
@@ -23,14 +23,14 @@ function App() {
       <SettingsProvider>
         <BrowserRouter>
           <Routes>
-            {/* Rotas públicas */}
+            {/* Public routes */}
             <Route path="/login" element={<Auth defaultTab="login" />} />
             <Route path="/auth" element={<Auth />} />
             
-            {/* Página inicial */}
+            {/* Home page (public but redirects authenticated users) */}
             <Route path="/" element={<HomePage />} />
             
-            {/* Rotas protegidas */}
+            {/* Protected routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/agendamentos" element={<ProtectedRoute><Agendamentos /></ProtectedRoute>} />
             <Route path="/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
@@ -40,10 +40,10 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
             
-            {/* Redireciona a raiz para a página inicial */}
-            <Route path="/index" element={<Navigate to="/" />} />
+            {/* Redirect /index to home page */}
+            <Route path="/index" element={<Navigate to="/" replace />} />
             
-            {/* Página 404 para rotas inexistentes */}
+            {/* 404 page for non-existent routes */}
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />

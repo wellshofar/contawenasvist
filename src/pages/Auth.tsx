@@ -24,7 +24,7 @@ const Auth: React.FC<AuthProps> = ({ defaultTab = 'login' }) => {
   const initialTab = locationState?.defaultTab || defaultTab;
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
 
-  // Log para depuração
+  // Debug log
   useEffect(() => {
     console.log("Auth render -", { 
       isAuthenticated: !!user, 
@@ -34,12 +34,12 @@ const Auth: React.FC<AuthProps> = ({ defaultTab = 'login' }) => {
     });
   }, [user, loading, activeTab, locationState]);
 
-  // Mostre loader enquanto verifica estado de autenticação
+  // Show loader while checking auth state
   if (loading) {
     return <AuthLoader />;
   }
 
-  // Se o usuário já estiver logado, redirecione para o dashboard
+  // If user is already logged in, redirect to dashboard or requested page
   if (user) {
     const redirectTo = locationState?.from?.pathname || '/dashboard';
     return <Navigate to={redirectTo} replace />;
@@ -54,7 +54,7 @@ const Auth: React.FC<AuthProps> = ({ defaultTab = 'login' }) => {
   };
 
   const handleRegisterSuccess = () => {
-    // Redirecione para a aba de login após o registro bem-sucedido
+    // Switch to login tab after successful registration
     setActiveTab('login');
   };
 

@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,12 +6,12 @@ import LandingPage from "./LandingPage";
 const HomePage: React.FC = () => {
   const { user, loading } = useAuth();
 
-  // Adicionando console log para depuração
+  // Logging for debugging
   useEffect(() => {
     console.log("HomePage render - Auth state:", { user: !!user, loading });
   }, [user, loading]);
 
-  // Se ainda estiver verificando o status da autenticação, mostre algo simples
+  // If still checking auth status, show simple loading spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -21,12 +20,12 @@ const HomePage: React.FC = () => {
     );
   }
 
-  // Se o usuário estiver autenticado, redirecione para o Dashboard
+  // If user is authenticated, redirect to dashboard
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Caso contrário, mostre a landing page para usuários não autenticados
+  // Otherwise show landing page for non-authenticated users
   return <LandingPage />;
 };
 

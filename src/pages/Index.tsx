@@ -3,7 +3,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 
 const Index: React.FC = () => {
-  // Redirecionar para a página inicial
+  // Simple redirect to home page
   return <Navigate to="/" replace />;
 };
 

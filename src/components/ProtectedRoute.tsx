@@ -13,14 +13,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // Adicionando console log para depuração
+  // Add debug log
   useEffect(() => {
     console.log("ProtectedRoute render -", 
       { path: location.pathname, isAuthenticated: !!user, loading }
     );
   }, [user, loading, location]);
 
-  // Mostre estado de carregamento enquanto verifica autenticação
+  // Show loading state while checking authentication
   if (loading) {
     return (
       <div className="container mx-auto py-8">
@@ -30,12 +30,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Redirecione para home se não estiver autenticado
+  // Redirect to home if not authenticated
   if (!user) {
     return <Navigate to="/" replace state={{ from: location }} />;
   }
 
-  // Renderize os filhos envolvidos em AppLayout se autenticado
+  // Render children wrapped in AppLayout if authenticated
   return <AppLayout>{children}</AppLayout>;
 };
 
